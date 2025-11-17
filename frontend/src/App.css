@@ -1,0 +1,94 @@
+:root {
+  font-family: 'JosefinSans', sans-serif;
+  font-size: 20px;
+  color: #2E3140;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  min-height: 100vh;
+}
+
+@font-face { 
+  font-family: 'JosefinSans'; 
+  src: url('./fonts/JosefinSans-Regular.ttf') format('truetype'); 
+  font-weight: 400; 
+  font-style: normal; 
+}
+
+.form-control:focus,
+.form-control:focus-visible {
+  outline: none !important;
+  border-color: #9CABD6 !important;
+  box-shadow: 0 0 0 0.2rem #9CABD6 !important;
+}
+
+.blue-btn {
+  background-color: #2E3140;
+  border-color: #2E3140;
+  color: #FCFBE5;
+  width: 100%;
+}
+
+.blue-btn:hover,
+.blue-btn:focus,
+.blue-btn:focus-visible,
+.blue-btn:active,
+.blue-btn:active:focus,
+.blue-btn:active:focus-visible {
+  background-color: #3F4F6B !important;
+  border-color: #3F4F6B !important;
+  color: #FCFBE5 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.login-container {
+  width: 500px;
+  padding: 2rem;
+  margin: 2rem auto;
+  border: 1px solid #FCFBE5;
+  border-radius: 10px;
+  background-color: #FCFBE5;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; 
+}
+
+.funky-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: 
+    linear-gradient(to bottom right, #A9D8C2 1%, #D9E385 33%, #F1B4B2 66%, #EB8AA0 100%);
+  background-blend-mode: overlay; 
+  background-size: cover;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+.form-text {
+  text-align: center;
+  color: #2E3140;
+}
+
+.palette-circle {
+  width: 80px;
+  height: 80px;
+  background-color: #9CABD6;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 0.3rem auto; /* centers it */
+}
