@@ -51,7 +51,7 @@ function Login() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingRight: '2.5rem' }} // space for the icon
+                style={{ paddingRight: '2.5rem' }}
               />
               <span
                 onClick={() => setShowPassword((prev) => !prev)}
@@ -74,7 +74,7 @@ function Login() {
         </Form>
 
         <p className="form-text">
-          Don't have an account? <Link to="/signup">Sign up</Link>
+          Don't have an account? <Link to="/signup" className="custom-link">Sign up</Link>
         </p>
       </div>
     </div>

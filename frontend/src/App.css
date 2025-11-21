@@ -85,10 +85,20 @@ body {
 .palette-circle {
   width: 80px;
   height: 80px;
-  background-color: #9CABD6;
+  background-color: #D9E385;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0 auto 0.3rem auto; /* centers it */
+  margin: 0 auto 0.3rem auto;
+}
+
+.custom-link {
+  text-decoration: none;
+  color: #EB8AA0;
+}
+
+.custom-link:hover {
+  text-decoration: none;
+  color: #F1B4B2;
 }
