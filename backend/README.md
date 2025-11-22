@@ -7,12 +7,14 @@
 
 create .env (not yet done)
 
-add db.js (not yet done)
+add db.js (done but empty)
 
-add app.js (not yet done)
+add server.js (done but empty)
 
 change package.json scripts segment
 "scripts": {
-  "start": "node app.js",
-  "dev": "nodemon app.js"
+  "start": "node server.js",
+  "dev": "nodemon server.js"
 }
+
+
