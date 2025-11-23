@@ -1,4 +1,4 @@
-function Signup() {
+function signup() {
 
   return (
     <div className="funky-gradient">
@@ -9,4 +9,4 @@ function Signup() {
   );
 }
 
-export default Signup;
+export default signup;

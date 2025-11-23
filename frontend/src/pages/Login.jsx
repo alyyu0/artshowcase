@@ -5,7 +5,7 @@ import Button from 'react-bootstrap/Button';
 import { Palette } from 'lucide-react';
 import { Eye, EyeSlash } from 'react-bootstrap-icons';
 
-function Login() {
+function login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -81,4 +81,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default login;
