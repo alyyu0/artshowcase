@@ -1,4 +1,4 @@
-CREATE DATABASE art_showcase;
+CREATE DATABASE if NOT EXISTS art_showcase;
 USE art_showcase;
 
 -- 1.) USER TABLE 
@@ -6,7 +6,7 @@ CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(20) NOT NULL,
+    password VARCHAR(20) NOT NULL
 );
 
 -- 2. ARTWORK TABLE

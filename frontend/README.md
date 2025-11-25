@@ -5,6 +5,7 @@
 
 
 **TO CHECK PROGRESS IN LOCALHOST**
-IN TERMINAL, INPUT:
-1. cd frontend
-2. npm run dev
+- [IN TERMINAL]
+- open terminal
+- cd frontend
+- npm run dev
