@@ -26,15 +26,16 @@ exports.login = (req, res) => {
   const sql = "SELECT * FROM users WHERE email = ?";
 
   db.query(sql, [email], (err, rows) => {
-    if (err) return res.status(500).json({ error: err });
-    if (rows.length === 0) return res.status(400).json({ error: "User not found" });
+    if (err) return res.status(500).json({ error: err.message });
+    if (rows.length === 0) return res.status(401).json({ error: "User not found" });
 
     const user = rows[0];
 
     bcrypt.compare(password, user.password, (err, match) => {
-      if (!match) return res.status(400).json({ error: "Incorrect password" });
+      if (err) return res.status(500).json({ error: "Password check failed" });
+      if (!match) return res.status(401).json({ error: "Incorrect password" });
 
-      res.json({ message: "Login successful!", userId: user.id });
+      res.json({ message: "Login successful!", userId: user.user_id });
     });
   });
 };

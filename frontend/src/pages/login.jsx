@@ -5,20 +5,40 @@ import Button from 'react-bootstrap/Button';
 import { Palette } from 'lucide-react';
 import { Eye, EyeSlash } from 'react-bootstrap-icons';
 
-function login() {
+function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (username && password) {
-      localStorage.setItem('loggedIn', true);
-      navigate('/');
-    } else {
+    if (!username || !password) {
       alert('Enter username and password!');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('loggedIn', true);
+        localStorage.setItem('userId', data.userId);
+        alert(data.message);
+        navigate('/');
+      } else {
+        alert(data.message || 'Login failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Something went wrong!');
     }
   };
 
@@ -81,4 +101,4 @@ function login() {
   );
 }
 
-export default login;
+export default Login;

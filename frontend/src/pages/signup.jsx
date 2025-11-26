@@ -1,25 +1,36 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
-import { Palette } from 'lucide-react';
-import { Eye, EyeSlash } from 'react-bootstrap-icons';
-
-function signup() {
+function Signup() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
-    if (username && password) {
-      localStorage.setItem('loggedIn', true);
-      navigate('/');
-    } else {
-      alert('Enter username and password!');
+    if (!username || !email || !password) {
+      alert('Please fill in all fields!');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+        navigate('/login');
+      } else {
+        alert(data.message || 'Signup failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Something went wrong!');
     }
   };
 
@@ -33,7 +44,7 @@ function signup() {
           <h2>Sign Up</h2>
           <p className="welcome-text">Create your account to start sharing and discovering art</p>
         </div>
-        <Form onSubmit={handleLogin}>
+        <Form onSubmit={handleSignup}>
           <Form.Group className="mb-3" controlId="username">
               <Form.Label>Username</Form.Label>
               <Form.Control
@@ -49,6 +60,8 @@ function signup() {
               <Form.Control
                 type="email"
                 placeholder="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
           </Form.Group>
 
@@ -91,4 +104,4 @@ function signup() {
   );
 }
 
-export default signup;
+export default Signup;
