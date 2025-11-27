@@ -3,22 +3,21 @@ const app = express();
 require("dotenv").config();
 const db = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const artworkRoutes = require("./routes/artworkRoutes");
 
+// Middleware
 app.use(express.json());
-
-// Auth routes
-app.use("/api/auth", authRoutes);
-
-// Test route
-app.get("/test-db", (req, res) => {
-  db.query("SELECT 1 + 1 AS solution", (err, result) => {
-    if (err) return res.status(500).send(err);
-    res.json(result);
-  });
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  next();
 });
 
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/artwork", artworkRoutes);
 
-// New static JSON endpoint
 app.get("/api/status", (req, res) => {
   res.json({ status: "Backend API is working!", timestamp: new Date() });
 });

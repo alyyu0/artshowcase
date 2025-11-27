@@ -1,3 +1,10 @@
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
+import { Palette } from 'lucide-react';
+import { Eye, EyeSlash } from 'react-bootstrap-icons';
+
 function Signup() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
@@ -14,8 +21,7 @@ function Signup() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/register', {
-        method: 'POST',
+      const response = await fetch('http://localhost:3000/api/auth/register', {        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password })
       });
