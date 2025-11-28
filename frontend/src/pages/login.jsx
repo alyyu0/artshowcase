@@ -44,7 +44,7 @@ function Login() {
 
   return (
     <div className="funky-gradient">
-      <div className="white-container">
+      <div className="cream-container">
         <div className="palette-circle">
           <Palette size={50} color="white" />
         </div>
