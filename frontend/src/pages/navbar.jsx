@@ -20,50 +20,40 @@ function NavigationBar() {
 
   return (
     <Navbar expand="lg" className="pink-header sticky-top">
-      <Container fluid className="d-flex justify-content-between align-items-center">
-        {/* Left: Brand */}
-        <Navbar.Brand href="/" className="artshowcase-title">
-          Art Showcase
-        </Navbar.Brand>
+      <Container fluid className="d-flex align-items-center">
+        <div className="d-flex align-items-center">
+          <Navbar.Brand href="/" className="artshowcase-title">
+            Art Showcase
+          </Navbar.Brand>
+        </div>
 
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-
-        <Navbar.Collapse id="basic-navbar-nav" className="justify-content-center">
-          {/* Center: Home, Gallery, Leaderboard */}
-          <Nav className="mx-auto">
-            <Nav.Link href="/" className="me-4">
+        <div className="d-flex justify-content-center flex-grow-1">
+          <Nav className="d-flex gap-4">
+            <Nav.Link href="/" className="d-flex align-items-center gap-2">
               <Home size={20} /> Home
             </Nav.Link>
-            <Nav.Link href="/gallery" className="me-4">
+            <Nav.Link href="/gallery" className="d-flex align-items-center gap-2">
               <Image size={20} /> Gallery
             </Nav.Link>
-            <Nav.Link href="/leaderboard" className="me-4">
+            <Nav.Link href="/leaderboard" className="d-flex align-items-center gap-2">
               <Trophy size={20} /> Leaderboard
             </Nav.Link>
           </Nav>
-        </Navbar.Collapse>
+        </div>
 
-        {/* Right: Upload & Profile */}
-        <Nav className="ms-auto align-items-center gap-3">
+        <div className="d-flex align-items-center gap-3">
           {isLoggedIn ? (
             <>
-              {/* Upload Button */}
-              <a
-                href="/upload"
-                className="btn btn-primary d-flex align-items-center gap-2"
-                style={{ backgroundColor: '#4A90E2', border: 'none' }}
-              >
+              <a href="/upload" className="navbar-blue-btn d-flex align-items-center gap-2">
                 <Upload size={18} /> Upload
               </a>
 
-              {/* Profile Dropdown */}
               <Dropdown align="end">
                 <Dropdown.Toggle
                   as="button"
                   className="p-0 border-0 bg-transparent"
-                  id="profile-dropdown"
-                  style={{ cursor: 'pointer' }}
                   bsPrefix="custom"
+                  style={{ cursor: 'pointer' }}
                 >
                   <img
                     src={profileImage}
@@ -73,7 +63,7 @@ function NavigationBar() {
                       height: '40px',
                       borderRadius: '50%',
                       objectFit: 'cover',
-                      border: '2px solid white'
+                      border: '2px solid white',
                     }}
                   />
                 </Dropdown.Toggle>
@@ -91,15 +81,11 @@ function NavigationBar() {
             </>
           ) : (
             <>
-              <Nav.Link href="/login" className="me-3">
-                Login
-              </Nav.Link>
-              <Nav.Link href="/signup">
-                Sign Up
-              </Nav.Link>
+              <Nav.Link href="/login" className="me-3">Login</Nav.Link>
+              <Nav.Link href="/signup">Sign Up</Nav.Link>
             </>
           )}
-        </Nav>
+        </div>
       </Container>
     </Navbar>
   );

@@ -45,5 +45,4 @@ CHECK OTHER README.md FILES FOR SPECIFIC BACKEND AND FRONTEND INSTRUCTIONS
 
 **TO RUN THE "npm start" on FRONTEND PART**
 - cd frontend
-- npm pkg set scripts.start="vite"
 - npm start
