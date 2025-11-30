@@ -17,3 +17,7 @@ ADD YOUR OWN .ENV FILE BASED ON YOUR MYSQL WORKBENCH, USE EXAMPLE.env AS BASIS
 - open terminal
 - cd backend
 - npm run dev
+
+**TO RUN BACKEND**
+- cd backend
+- npm start

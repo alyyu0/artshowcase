@@ -1,41 +1,139 @@
-const db = require("../config/db");
-const bcrypt = require("bcrypt");
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const jwtConfig = require('../config/jwt');
+const { createConnection } = require('../database/connection');
 
-exports.register = (req, res) => {
-  const { username, email, password } = req.body;
+// Signup controller
+exports.signup = async (req, res) => {
+  let connection;
+  try {
+    const { username, email, password } = req.body;
 
-  if (!username || !email || !password)
-    return res.status(400).json({ error: "Missing fields" });
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
 
-  bcrypt.hash(password, 10, (err, hashed) => {
-    if (err) return res.status(500).json({ error: "Hashing failed" });
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long'
+      });
+    }
 
-    const sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+    connection = await createConnection();
 
-    db.query(sql, [username, email, hashed], (err, result) => {
-      if (err) return res.status(500).json({ error: err });
+    const [existingUsers] = await connection.execute(
+      'SELECT * FROM users WHERE email = ? OR username = ?',
+      [email, username]
+    );
 
-      res.json({ message: "User registered successfully!" });
+    if (existingUsers.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email or username'
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const [result] = await connection.execute(
+      'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+      [username, email, hashedPassword]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully'
     });
-  });
+
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
 };
 
-exports.login = (req, res) => {
-  const { email, password } = req.body;
+// Login controller
+exports.login = async (req, res) => {
+  let connection;
+  try {
+    const { username, password } = req.body;
 
-  const sql = "SELECT * FROM users WHERE email = ?";
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username and password are required'
+      });
+    }
 
-  db.query(sql, [email], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (rows.length === 0) return res.status(401).json({ error: "User not found" });
+    connection = await createConnection();
 
-    const user = rows[0];
+    const [users] = await connection.execute(
+      'SELECT user_id, username, email, password FROM users WHERE username = ? OR email = ?',
+      [username, username]
+    );
 
-    bcrypt.compare(password, user.password, (err, match) => {
-      if (err) return res.status(500).json({ error: "Password check failed" });
-      if (!match) return res.status(401).json({ error: "Incorrect password" });
+    if (users.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
 
-      res.json({ message: "Login successful!", userId: user.user_id });
+    const user = users[0];
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    const token = jwt.sign(
+      { userId: user.user_id, username: user.username },
+      jwtConfig.secret,
+      { expiresIn: jwtConfig.expiresIn }
+    );
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token,
+      userId: user.user_id,
+      user: {
+        id: user.user_id,
+        username: user.username,
+        email: user.email
+      }
     });
-  });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+
+  module.exports = {
+  signup: exports.signup,
+  login: exports.login
+  };
+
 };

@@ -1,25 +1,17 @@
-const express = require("express");
-const bcrypt = require("bcrypt");
-const db = require("../config/db");
 
+const express = require('express');
 const router = express.Router();
 
-router.post("/register", (req, res) => {
-  const { username, email, password } = req.body;
+// Import the entire controller
+const authControllers = require('../controllers/authControllers');
 
-  if (!username || !email || !password) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
+// Use the functions directly
+router.post('/register', (req, res) => {
+  authControllers.signup(req, res);
+});
 
-  bcrypt.hash(password, 10, (err, hashed) => {
-    if (err) return res.status(500).json({ error: "Hashing failed" });
-
-    const sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
-    db.query(sql, [username, email, hashed], (err, result) => {
-      if (err) return res.status(500).json({ error: "User already exists" });
-      res.status(201).json({ message: "User registered successfully!" });
-    });
-  });
+router.post('/login', (req, res) => {
+  authControllers.login(req, res);
 });
 
 module.exports = router;

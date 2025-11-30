@@ -20,10 +20,10 @@ function Login() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password })
       });
 
       const data = await response.json();
@@ -31,6 +31,7 @@ function Login() {
       if (response.ok) {
         localStorage.setItem('loggedIn', true);
         localStorage.setItem('userId', data.userId);
+        localStorage.setItem('token', data.token);
         alert(data.message);
         navigate('/');
       } else {
