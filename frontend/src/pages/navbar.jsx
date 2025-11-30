@@ -42,52 +42,46 @@ function NavigationBar() {
         </div>
 
         <div className="d-flex align-items-center gap-3">
-          {isLoggedIn ? (
-            <>
-              <a href="/upload" className="navbar-blue-btn d-flex align-items-center gap-2">
-                <Upload size={18} /> Upload
-              </a>
+          <>
+            <a href="/upload" className="navbar-blue-btn d-flex align-items-center gap-2">
+              <Upload size={18} /> Upload
+            </a>
 
-              <Dropdown align="end">
-                <Dropdown.Toggle
-                  as="button"
-                  className="p-0 border-0 bg-transparent"
-                  bsPrefix="custom"
-                  style={{ cursor: 'pointer' }}
-                >
-                  <img
-                    src={profileImage}
-                    alt={username}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      border: '2px solid white',
-                    }}
-                  />
-                </Dropdown.Toggle>
+            <Dropdown align="end">
+              <Dropdown.Toggle
+                as="button"
+                className="p-0 border-0 bg-transparent"
+                bsPrefix="custom"
+                style={{ cursor: 'pointer' }}
+              >
+                <img
+                  src={profileImage}
+                  alt={username}
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2px solid white',
+                  }}
+                />
+              </Dropdown.Toggle>
 
-                <Dropdown.Menu className="mt-2">
-                  <Dropdown.Item href={`/profile/${userId}`} className="d-flex align-items-center">
-                    <User size={16} className="me-2" /> View Profile
-                  </Dropdown.Item>
-                  <Dropdown.Divider />
-                  <Dropdown.Item onClick={handleLogout} className="d-flex align-items-center text-danger">
-                    <LogOut size={16} className="me-2" /> Logout
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            </>
-          ) : (
-            <>
-              <Nav.Link href="/login" className="me-3">Login</Nav.Link>
-              <Nav.Link href="/signup">Sign Up</Nav.Link>
-            </>
-          )}
+              <Dropdown.Menu className="mt-2">
+                <Dropdown.Item href={`/profile/${userId}`} className="d-flex align-items-center">
+                  <User size={16} className="me-2" /> View Profile
+                </Dropdown.Item>
+                <Dropdown.Divider />
+                <Dropdown.Item onClick={handleLogout} className="d-flex align-items-center text-danger">
+                  <LogOut size={16} className="me-2" /> Logout
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </>
         </div>
       </Container>
     </Navbar>
+
   );
 }
 
