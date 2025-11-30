@@ -128,7 +128,7 @@ body {
 
 /* Reduce navbar height when collapsed */
 .navbar {
-  padding: 0.5rem 0 !important;
+  padding: 0.3rem 0 !important;
 }
 
 .navbar-brand {
