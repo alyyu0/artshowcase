@@ -17,7 +17,7 @@ connection.connect((err) => {
   console.log('✅ Connected to MySQL');
 });
 
-const sql = fs.readFileSync('./database/setup.sql', 'utf8');
+const sql = fs.readFileSync('./database/schema.sql', 'utf8');
 
 connection.query(sql, (err, results) => {
   if (err) {
