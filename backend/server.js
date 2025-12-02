@@ -3,6 +3,10 @@ const cors = require('cors');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
+const likeRoutes = require('./routes/likeRoutes');
+const commentRoutes = require('./routes/commentRoutes');
+const searchRoutes = require('./routes/searchRoutes');
+const artworkRoutes = require('./routes/artworkRoutes');
 
 const app = express();
 
@@ -14,6 +18,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/likes', likeRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/artwork', artworkRoutes);
+app.use('/api/search', searchRoutes);
+
 
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Backend is working!' });

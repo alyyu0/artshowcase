@@ -7,7 +7,8 @@
 
 body {
   margin: 0;
-  font-family: inherit;
+  /* Use the project's bundled font by default */
+  font-family: 'JosefinSans', sans-serif;
   font-size: inherit;
   color: inherit;
   min-height: 100vh;
@@ -116,6 +117,111 @@ body {
   width: 100%;
 }
 
+/* Home page: Discover header */
+.discover-header {
+  padding: 2rem 3rem;
+}
+
+.discover-header .discover-title {
+  font-size: 1.75rem;
+  color: #a69bd1;
+  margin: 0;
+}
+
+.discover-header .discover-subtitle {
+  margin-top: 0.5rem;
+  color: #5a5a5a;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  .discover-header { padding: 1.25rem 1rem; }
+  .discover-header .discover-title { font-size: 1.35rem; }
+  .discover-header .discover-subtitle { font-size: 0.9rem; }
+}
+
+/* Gallery page */
+.gallery-main {
+  padding: 1.25rem 1.5rem; /* smaller overall spacing */
+  /* expand content width to allow a wider search bar */
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.gallery-header {
+  display: block;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  max-width: 900px; /* narrower so content looks smaller */
+}
+
+.gallery-title {
+  font-size: 1.35rem; /* smaller title */
+  margin: 0 0 0.35rem 0;
+  color: #222228;
+}
+
+.gallery-subtitle {
+  margin: 0 0 0.6rem 0;
+  color: #5a5a5a;
+  font-size: 0.85rem; /* slightly smaller subtitle */
+}
+
+.gallery-search {
+  width: 100%;
+  /* allow the search bar to stretch further across larger viewports */
+  max-width: 1400px;
+}
+
+.gallery-search .search-input {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #FFFFFF;
+  border-radius: 12px; /* larger radius like the screenshot */
+  padding: 0.5rem 1rem; /* reduce vertical padding to make the input shorter */
+  box-shadow: 0 2px 0 rgba(0,0,0,0.03);
+  border: 2px solid rgba(138,146,203,0.3); /* subtle purple border */
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.08s;
+}
+
+/* ensure .form-control inside gallery search is smaller */
+.gallery-search .form-control,
+.gallery-search .search-input input {
+  border: none;
+  outline: none;
+  width: 100%;
+  /* make input text size match subtitle (smaller) */
+  font-size: 0.8rem; /* slightly smaller to match compact layout */
+  background: transparent;
+  color: #333;
+  font-family: 'JosefinSans', sans-serif; /* ensure our project font */
+}
+
+.gallery-search .search-input input::placeholder {
+  color: #bdbdbd;
+  font-size: 0.85rem; /* smaller placeholder to match input text */
+}
+
+.gallery-search .search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #bdbdbd;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .gallery-main { padding: 0.9rem 0.8rem; }
+  .gallery-title { font-size: 1.1rem; }
+  .gallery-subtitle { font-size: 0.8rem; }
+  .gallery-search .search-input { padding: 0.4rem 0.6rem; }
+  .gallery-search { max-width: 100%; }
+}
+
 .pink-header {
   background-color: #F1B4B2;
   max-height: min-content;
@@ -190,4 +296,48 @@ body {
   outline: none !important;
   box-shadow: none !important;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Match login input focus visuals: highlight container when focus inside */
+.gallery-search .search-input:focus-within {
+  outline: none;
+  border-color: #9CABD6; /* same color used in form-control:focus */
+  box-shadow: 0 0 0 0.2rem rgba(156,171,214,0.35);
+}
+
+/* Slightly bolder placeholder on focus for clarity */
+.gallery-search .search-input input:focus::placeholder {
+  color: rgba(0,0,0,0.3);
+}
+
+/* Ensure form controls use the project's font */
+.form-control {
+  font-family: 'JosefinSans', sans-serif;
+  /* smaller, consistent input text size */
+  font-size: 0.9rem;
+}
+
+/* Make the gallery search visible even when .search-input wrapper isn't present
+   (some files have the input directly inside .gallery-search). */
+.gallery-search > .form-control {
+  display: block;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 0.45rem 1rem; /* reduced vertical padding for a shorter field */
+  border: 2px solid rgba(138,146,203,0.3);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.03);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.08s;
+}
+
+.gallery-search > .form-control:focus {
+  border-color: #9CABD6;
+  box-shadow: 0 0 0 0.2rem rgba(156,171,214,0.35);
+  outline: none;
+}
+
+/* small press-in effect on active */
+.gallery-search .search-input:active,
+.gallery-search > .form-control:active {
+  transform: translateY(0.5px);
 }
