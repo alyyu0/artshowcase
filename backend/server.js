@@ -8,6 +8,7 @@ const commentRoutes = require('./routes/commentRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const artworkRoutes = require('./routes/artworkRoutes');
 const userRoutes = require('./routes/userRoutes');
+const followRoutes = require('./routes/followRoutes');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/artwork', artworkRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/follows', followRoutes);
 
 
 app.get('/api/test', (req, res) => {

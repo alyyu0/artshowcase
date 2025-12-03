@@ -44,9 +44,21 @@ exports.signup = async (req, res) => {
       [username, email, hashedPassword]
     );
 
+    const userId = result.insertId;
+
+    // Generate JWT for auto-login
+    const token = jwt.sign(
+      { userId: userId, username: username },
+      jwtConfig.secret,
+      { expiresIn: jwtConfig.expiresIn }
+    );
+
     res.status(201).json({
       success: true,
-      message: 'User created successfully'
+      message: 'User created successfully',
+      token,
+      userId,
+      username
     });
 
   } catch (error) {
@@ -130,10 +142,4 @@ exports.login = async (req, res) => {
       await connection.end();
     }
   }
-
-  module.exports = {
-  signup: exports.signup,
-  login: exports.login
-  };
-
 };

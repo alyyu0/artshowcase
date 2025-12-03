@@ -1,10 +1,11 @@
 import { Home, Image, Trophy, User, LogOut, Upload } from 'lucide-react';
 import { Nav, Navbar, Container, Dropdown } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../App.css';
 
 function NavigationBar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const isLoggedIn = localStorage.getItem('loggedIn');
   const username = localStorage.getItem('username');
   const userId = localStorage.getItem('userId');
@@ -29,13 +30,46 @@ function NavigationBar() {
 
         <div className="d-flex justify-content-center flex-grow-1">
           <Nav className="d-flex gap-4">
-            <Nav.Link href="/" className="d-flex align-items-center gap-2">
+            <Nav.Link 
+              href="/" 
+              className="d-flex align-items-center gap-2"
+              style={{
+                position: 'relative',
+                paddingBottom: '12px',
+                borderRadius: '8px',
+                backgroundColor: location.pathname === '/' ? '#d9e385' : 'transparent',
+                padding: location.pathname === '/' ? '8px 16px' : '8px 16px',
+                transition: 'all 0.3s ease'
+              }}
+            >
               <Home size={20} /> Home
             </Nav.Link>
-            <Nav.Link href="/gallery" className="d-flex align-items-center gap-2">
+            <Nav.Link 
+              href="/gallery" 
+              className="d-flex align-items-center gap-2"
+              style={{
+                position: 'relative',
+                paddingBottom: '12px',
+                borderRadius: '8px',
+                backgroundColor: location.pathname === '/gallery' ? '#d9e385' : 'transparent',
+                padding: location.pathname === '/gallery' ? '8px 16px' : '8px 16px',
+                transition: 'all 0.3s ease'
+              }}
+            >
               <Image size={20} /> Gallery
             </Nav.Link>
-            <Nav.Link href="/leaderboard" className="d-flex align-items-center gap-2">
+            <Nav.Link 
+              href="/leaderboard" 
+              className="d-flex align-items-center gap-2"
+              style={{
+                position: 'relative',
+                paddingBottom: '12px',
+                borderRadius: '8px',
+                backgroundColor: location.pathname === '/leaderboard' ? '#d9e385' : 'transparent',
+                padding: location.pathname === '/leaderboard' ? '8px 16px' : '8px 16px',
+                transition: 'all 0.3s ease'
+              }}
+            >
               <Trophy size={20} /> Leaderboard
             </Nav.Link>
           </Nav>
@@ -63,6 +97,8 @@ function NavigationBar() {
                     borderRadius: '50%',
                     objectFit: 'cover',
                     border: '2px solid white',
+                    display: 'block',
+                    flex: '0 0 40px',
                   }}
                 />
               </Dropdown.Toggle>

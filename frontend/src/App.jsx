@@ -5,6 +5,7 @@ import Signup from './pages/signup';
 import Home from './pages/home';
 import Gallery from './pages/gallery';
 import Leaderboard from './pages/leaderboard';
+import Profile from './pages/profile';
 import ProtectedRoute from './components/ProtectedRoute';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -18,6 +19,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/profile/:userId" element={<Profile />} />
+        <Route path="/profile" element={<Profile />} />
         <Route
           path="/"
           element={

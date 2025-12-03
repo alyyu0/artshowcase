@@ -28,16 +28,28 @@ function Signup() {
       });
 
       const data = await response.json();
+      console.log('Signup response:', data);
 
       if (response.ok) {
+        // Auto-login: store credentials from signup response
+        localStorage.setItem('loggedIn', 'true');
+        localStorage.setItem('userId', data.userId || '');
+        localStorage.setItem('token', data.token || '');
+        localStorage.setItem('username', data.username || username);
         alert(data.message);
-        navigate('/login');
+        // Navigate to profile page
+        if (data.userId) {
+          navigate(`/profile/${data.userId}`);
+        } else {
+          console.warn('No userId in response, navigating to home');
+          navigate('/');
+        }
       } else {
         alert(data.message || 'Signup failed');
       }
     } catch (err) {
-      console.error(err);
-      alert('Something went wrong!');
+      console.error('Signup error:', err);
+      alert('Something went wrong! Check console for details.');
     }
   };
 
