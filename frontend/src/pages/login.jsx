@@ -29,11 +29,16 @@ function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('loggedIn', true);
-        localStorage.setItem('userId', data.userId);
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('loggedIn', 'true');
+        localStorage.setItem('userId', data.userId || data.user_id || '');
+        localStorage.setItem('token', data.token || '');
+        // store username so navbar/profile can display it
+        localStorage.setItem('username', data.username || username);
+        // store profile image if backend returns it
+        if (data.profile_picture) localStorage.setItem('profileImage', data.profile_picture);
         alert(data.message);
-        navigate('/');
+        // navigate to the user's profile page
+        navigate(`/profile/${data.userId || data.user_id || ''}`);
       } else {
         alert(data.message || 'Login failed');
       }

@@ -7,13 +7,13 @@ const likeRoutes = require('./routes/likeRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const artworkRoutes = require('./routes/artworkRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
-}));
+// Allow frontend dev origins (Vite default 5173 and CRA 3000) or override via FRONTEND_ORIGIN env
+const frontendOrigin = process.env.FRONTEND_ORIGIN || ['http://localhost:5173', 'http://localhost:3000'];
+app.use(cors({ origin: frontendOrigin, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -22,6 +22,7 @@ app.use('/api/likes', likeRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/artwork', artworkRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/users', userRoutes);
 
 
 app.get('/api/test', (req, res) => {

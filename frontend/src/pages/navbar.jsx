@@ -68,7 +68,14 @@ function NavigationBar() {
               </Dropdown.Toggle>
 
               <Dropdown.Menu className="mt-2">
-                <Dropdown.Item href={`/profile/${userId}`} className="d-flex align-items-center">
+                <Dropdown.Item
+                  onClick={() => {
+                    if (userId) navigate(`/profile/${userId}`);
+                    else navigate('/profile');
+                  }}
+                  className="d-flex align-items-center"
+                  role="button"
+                >
                   <User size={16} className="me-2" /> View Profile
                 </Dropdown.Item>
                 <Dropdown.Divider />
