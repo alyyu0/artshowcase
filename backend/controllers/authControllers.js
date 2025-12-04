@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken');
 const jwtConfig = require('../config/jwt');
 const { createConnection } = require('../database/connection');
 
+// Default profile picture URL
+const DEFAULT_PROFILE_PICTURE = 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png';
+
 // Signup controller
 exports.signup = async (req, res) => {
   let connection;
@@ -40,8 +43,8 @@ exports.signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const [result] = await connection.execute(
-      'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-      [username, email, hashedPassword]
+      'INSERT INTO users (username, email, password, profile_picture) VALUES (?, ?, ?, ?)',
+      [username, email, hashedPassword, DEFAULT_PROFILE_PICTURE]
     );
 
     const userId = result.insertId;
@@ -58,7 +61,8 @@ exports.signup = async (req, res) => {
       message: 'User created successfully',
       token,
       userId,
-      username
+      username,
+      profile_picture: DEFAULT_PROFILE_PICTURE
     });
 
   } catch (error) {
@@ -91,11 +95,12 @@ exports.login = async (req, res) => {
     connection = await createConnection();
 
     const [users] = await connection.execute(
-      'SELECT user_id, username, email, password FROM users WHERE username = ? OR email = ?',
+      'SELECT user_id, username, email, password, profile_picture FROM users WHERE username = ? OR email = ?',
       [username, username]
     );
 
     if (users.length === 0) {
+      console.log(`Login attempt failed: User '${username}' not found`);
       return res.status(400).json({
         success: false,
         message: 'Invalid credentials'
@@ -103,9 +108,13 @@ exports.login = async (req, res) => {
     }
 
     const user = users[0];
+    console.log(`User found: ${user.username}, checking password...`);
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log(`Password valid: ${isPasswordValid}`);
+    
     if (!isPasswordValid) {
+      console.log(`Login failed for user '${username}': Invalid password`);
       return res.status(400).json({
         success: false,
         message: 'Invalid credentials'
@@ -123,6 +132,7 @@ exports.login = async (req, res) => {
       message: 'Login successful',
       token,
       userId: user.user_id,
+      profile_picture: user.profile_picture,
       user: {
         id: user.user_id,
         username: user.username,

@@ -9,7 +9,13 @@ exports.getUserById = (req, res) => {
   db.query(sql, [user_id], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!rows || rows.length === 0) return res.status(404).json({ error: 'User not found' });
-    res.json(rows[0]);
+    
+    const user = rows[0];
+    if (user.profile_picture) {
+      user.profile_picture = `http://localhost:5000${user.profile_picture}`;
+    }
+    
+    res.json(user);
   });
 };
 

@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const cloudinary = require("cloudinary").v2;
 
 exports.createArtwork = (req, res) => {
   const { user_id, image_url, title } = req.body;
@@ -16,7 +17,7 @@ exports.createArtwork = (req, res) => {
 
 exports.getAllArtworks = (req, res) => {
   const sql = `
-    SELECT artwork.*, users.username 
+    SELECT artwork.*, users.username, users.profile_picture
     FROM artwork 
     JOIN users ON artwork.user_id = users.user_id
     ORDER BY artwork.artwork_id DESC
@@ -24,7 +25,15 @@ exports.getAllArtworks = (req, res) => {
 
   db.query(sql, (err, rows) => {
     if (err) return res.status(500).json({ error: err });
-    res.json(rows);
+    
+    // Format response with proper image URLs
+    const formattedRows = rows.map(row => ({
+      ...row,
+      image_url: row.image_url || 'https://via.placeholder.com/300x300?text=No+Image',
+      profile_picture: row.profile_picture || 'https://via.placeholder.com/40?text=User'
+    }));
+    
+    res.json(formattedRows);
   });
 };
 
@@ -34,7 +43,7 @@ exports.getArtworkById = (req, res) => {
   if (!artwork_id) return res.status(400).json({ error: "Missing artwork id" });
 
   const sql = `
-    SELECT artwork.*, users.username
+    SELECT artwork.*, users.username, users.profile_picture
     FROM artwork
     JOIN users ON artwork.user_id = users.user_id
     WHERE artwork.artwork_id = ?
@@ -53,7 +62,7 @@ exports.getArtworksByUser = (req, res) => {
   if (!user_id) return res.status(400).json({ error: "Missing user id" });
 
   const sql = `
-    SELECT artwork.*, users.username
+    SELECT artwork.*, users.username, users.profile_picture
     FROM artwork
     JOIN users ON artwork.user_id = users.user_id
     WHERE artwork.user_id = ?
@@ -62,7 +71,14 @@ exports.getArtworksByUser = (req, res) => {
 
   db.query(sql, [user_id], (err, rows) => {
     if (err) return res.status(500).json({ error: err });
-    res.json(rows);
+    
+    const formattedRows = rows.map(row => ({
+      ...row,
+      image_url: row.image_url || 'https://via.placeholder.com/300x300?text=No+Image',
+      profile_picture: row.profile_picture || 'https://via.placeholder.com/40?text=User'
+    }));
+    
+    res.json(formattedRows);
   });
 };
 
@@ -114,4 +130,82 @@ exports.deleteArtwork = (req, res) => {
       res.json({ message: "Artwork deleted successfully" });
     });
   });
+};
+
+// Upload artwork with image to Cloudinary
+exports.uploadArtwork = async (req, res) => {
+  try {
+    const { user_id, title, caption, hashtags } = req.body;
+
+    if (!user_id || !title || !req.file) {
+      return res.status(400).json({ 
+        success: false,
+        error: "Missing user_id, title, or image file" 
+      });
+    }
+
+    // Upload image to Cloudinary
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "art_showcase" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(req.file.buffer);
+    });
+
+    const image_url = uploadResult.secure_url;
+
+    // Insert into database
+    const sql = "INSERT INTO artwork (user_id, title, caption, image_url) VALUES (?, ?, ?, ?)";
+    
+    db.query(sql, [user_id, title, caption || '', image_url], (err, result) => {
+      if (err) {
+        return res.status(500).json({ 
+          success: false,
+          error: err.message 
+        });
+      }
+
+      const artwork_id = result.insertId;
+
+      // Handle hashtags if provided
+      if (hashtags && hashtags.trim()) {
+        const tagArray = hashtags.split(' ').filter(tag => tag.startsWith('#') || tag);
+        
+        tagArray.forEach(tag => {
+          const cleanTag = tag.replace('#', '').toLowerCase();
+          
+          // Insert or get hashtag
+          const hashtagSql = "INSERT IGNORE INTO hashtags (tag) VALUES (?)";
+          db.query(hashtagSql, [cleanTag], (err) => {
+            if (!err) {
+              // Link hashtag to artwork
+              const linkSql = `
+                INSERT INTO artwork_hashtags (artwork_id, hashtag_id)
+                SELECT ?, hashtag_id FROM hashtags WHERE tag = ?
+              `;
+              db.query(linkSql, [artwork_id, cleanTag]);
+            }
+          });
+        });
+      }
+
+      res.status(201).json({ 
+        success: true,
+        message: "Artwork uploaded successfully!",
+        artwork_id,
+        image_url
+      });
+    });
+
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
 };

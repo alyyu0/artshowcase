@@ -1,11 +1,14 @@
 import { Home, Image, Trophy, User, LogOut, Upload } from 'lucide-react';
 import { Nav, Navbar, Container, Dropdown } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import UploadModal from './upload';
 import '../App.css';
 
 function NavigationBar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showUpload, setShowUpload] = useState(false);
   const isLoggedIn = localStorage.getItem('loggedIn');
   const username = localStorage.getItem('username');
   const userId = localStorage.getItem('userId');
@@ -20,111 +23,118 @@ function NavigationBar() {
   };
 
   return (
-    <Navbar expand="lg" className="pink-header sticky-top">
-      <Container fluid className="d-flex align-items-center">
-        <div className="d-flex align-items-center">
-          <Navbar.Brand href="/" className="artshowcase-title">
-            Art Showcase
-          </Navbar.Brand>
-        </div>
+    <>
+      <Navbar expand="lg" className="pink-header sticky-top">
+        <Container fluid className="d-flex align-items-center">
+          <div className="d-flex align-items-center">
+            <Navbar.Brand href="/" className="artshowcase-title">
+              Art Showcase
+            </Navbar.Brand>
+          </div>
 
-        <div className="d-flex justify-content-center flex-grow-1">
-          <Nav className="d-flex gap-4">
-            <Nav.Link 
-              href="/" 
-              className="d-flex align-items-center gap-2"
-              style={{
-                position: 'relative',
-                paddingBottom: '12px',
-                borderRadius: '8px',
-                backgroundColor: location.pathname === '/' ? '#d9e385' : 'transparent',
-                padding: location.pathname === '/' ? '8px 16px' : '8px 16px',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              <Home size={20} /> Home
-            </Nav.Link>
-            <Nav.Link 
-              href="/gallery" 
-              className="d-flex align-items-center gap-2"
-              style={{
-                position: 'relative',
-                paddingBottom: '12px',
-                borderRadius: '8px',
-                backgroundColor: location.pathname === '/gallery' ? '#d9e385' : 'transparent',
-                padding: location.pathname === '/gallery' ? '8px 16px' : '8px 16px',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              <Image size={20} /> Gallery
-            </Nav.Link>
-            <Nav.Link 
-              href="/leaderboard" 
-              className="d-flex align-items-center gap-2"
-              style={{
-                position: 'relative',
-                paddingBottom: '12px',
-                borderRadius: '8px',
-                backgroundColor: location.pathname === '/leaderboard' ? '#d9e385' : 'transparent',
-                padding: location.pathname === '/leaderboard' ? '8px 16px' : '8px 16px',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              <Trophy size={20} /> Leaderboard
-            </Nav.Link>
-          </Nav>
-        </div>
-
-        <div className="d-flex align-items-center gap-3">
-          <>
-            <a href="/upload" className="navbar-blue-btn d-flex align-items-center gap-2">
-              <Upload size={18} /> Upload
-            </a>
-
-            <Dropdown align="end">
-              <Dropdown.Toggle
-                as="button"
-                className="p-0 border-0 bg-transparent"
-                bsPrefix="custom"
-                style={{ cursor: 'pointer' }}
+          <div className="d-flex justify-content-center flex-grow-1">
+            <Nav className="d-flex gap-4">
+              <Nav.Link 
+                href="/" 
+                className="d-flex align-items-center gap-2"
+                style={{
+                  position: 'relative',
+                  paddingBottom: '12px',
+                  borderRadius: '8px',
+                  backgroundColor: location.pathname === '/' ? '#d9e385' : 'transparent',
+                  padding: location.pathname === '/' ? '8px 16px' : '8px 16px',
+                  transition: 'all 0.3s ease'
+                }}
               >
-                <img
-                  src={profileImage}
-                  alt={username}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: '2px solid white',
-                    display: 'block',
-                    flex: '0 0 40px',
-                  }}
-                />
-              </Dropdown.Toggle>
+                <Home size={20} /> Home
+              </Nav.Link>
+              <Nav.Link 
+                href="/gallery" 
+                className="d-flex align-items-center gap-2"
+                style={{
+                  position: 'relative',
+                  paddingBottom: '12px',
+                  borderRadius: '8px',
+                  backgroundColor: location.pathname === '/gallery' ? '#d9e385' : 'transparent',
+                  padding: location.pathname === '/gallery' ? '8px 16px' : '8px 16px',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <Image size={20} /> Gallery
+              </Nav.Link>
+              <Nav.Link 
+                href="/leaderboard" 
+                className="d-flex align-items-center gap-2"
+                style={{
+                  position: 'relative',
+                  paddingBottom: '12px',
+                  borderRadius: '8px',
+                  backgroundColor: location.pathname === '/leaderboard' ? '#d9e385' : 'transparent',
+                  padding: location.pathname === '/leaderboard' ? '8px 16px' : '8px 16px',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <Trophy size={20} /> Leaderboard
+              </Nav.Link>
+            </Nav>
+          </div>
 
-              <Dropdown.Menu className="mt-2">
-                <Dropdown.Item
-                  onClick={() => {
-                    if (userId) navigate(`/profile/${userId}`);
-                    else navigate('/profile');
-                  }}
-                  className="d-flex align-items-center"
-                  role="button"
+          <div className="d-flex align-items-center gap-3">
+            <>
+              <button 
+                onClick={() => setShowUpload(true)}
+                className="navbar-blue-btn d-flex align-items-center gap-2"
+                style={{ border: 'none', cursor: 'pointer' }}
+              >
+                <Upload size={18} /> Upload
+              </button>
+
+              <Dropdown align="end">
+                <Dropdown.Toggle
+                  as="button"
+                  className="p-0 border-0 bg-transparent"
+                  bsPrefix="custom"
+                  style={{ cursor: 'pointer' }}
                 >
-                  <User size={16} className="me-2" /> View Profile
-                </Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item onClick={handleLogout} className="d-flex align-items-center text-danger">
-                  <LogOut size={16} className="me-2" /> Logout
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          </>
-        </div>
-      </Container>
-    </Navbar>
+                  <img
+                    src={profileImage}
+                    alt={username}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid white',
+                      display: 'block',
+                      flex: '0 0 40px',
+                    }}
+                  />
+                </Dropdown.Toggle>
 
+                <Dropdown.Menu className="mt-2">
+                  <Dropdown.Item
+                    onClick={() => {
+                      if (userId) navigate(`/profile/${userId}`);
+                      else navigate('/profile');
+                    }}
+                    className="d-flex align-items-center"
+                    role="button"
+                  >
+                    <User size={16} className="me-2" /> View Profile
+                  </Dropdown.Item>
+                  <Dropdown.Divider />
+                  <Dropdown.Item onClick={handleLogout} className="d-flex align-items-center text-danger">
+                    <LogOut size={16} className="me-2" /> Logout
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </>
+          </div>
+        </Container>
+      </Navbar>
+
+      <UploadModal show={showUpload} onHide={() => setShowUpload(false)} />
+    </>
   );
 }
 
