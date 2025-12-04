@@ -13,24 +13,24 @@ TRUNCATE TABLE hashtags;
 TRUNCATE TABLE users;
 SET FOREIGN_KEY_CHECKS = 1;
 
--- USERS TABLE (15 users) - All passwords are 'password' hashed with bcrypt
+-- USERS TABLE (15 users) - All passwords are 'password' hashed with bcrypt (cost 10)
 INSERT INTO users (username, email, password, bio, profile_picture)
 VALUES
-('GwenVere', 'gwen@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'Hopes and dreams', '.https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('thecreature', 'creature@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'hi!', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('cr4n3w1v3sf4n', 'crane@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'I like music and art', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('livinglife_', 'living@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'Newbie', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('swirlswirlswirl', 'swirl@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'cute posting', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('gl1de', 'glide@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'sketches', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('JadeHalley', 'jade@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'Trying digital art', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('bluebirdhumming', 'bluebird@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'Just some guy', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('eichisurvivor', 'eichi@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'just passing time', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('user10', 'user10@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'Bio of user10', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('user11', 'user11@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'Bio of user11', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('user12', 'user12@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'Bio of user12', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('user13', 'user13@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'Bio of user13', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('user14', 'user14@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'Bio of user14', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
-('user15', 'user15@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/TVG2', 'Bio of user15', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png');
+('GwenVere', 'gwen@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'Hopes and dreams', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('thecreature', 'creature@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'hi!', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('cr4n3w1v3sf4n', 'crane@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'I like music and art', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('livinglife_', 'living@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'Newbie', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('swirlswirlswirl', 'swirl@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'cute posting', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('gl1de', 'glide@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'sketches', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('JadeHalley', 'jade@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'Trying digital art', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('bluebirdhumming', 'bluebird@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'Just some guy', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('eichisurvivor', 'eichi@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'just passing time', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('user10', 'user10@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'Bio of user10', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('user11', 'user11@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'Bio of user11', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('user12', 'user12@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'Bio of user12', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('user13', 'user13@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'Bio of user13', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('user14', 'user14@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'Bio of user14', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png'),
+('user15', 'user15@example.com', '$2b$10$slYQmyNdGzin7olVVCb1Be7DlH.PKZbv5H8KnzzVgXXbVxzy56B4m', 'Bio of user15', 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png');
 
 -- ARTWORK TABLE (10 artworks)
 INSERT INTO artwork (user_id, title, caption, image_url)
