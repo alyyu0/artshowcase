@@ -6,7 +6,7 @@ exports.searchUsers = (req, res) => {
 	if (!query || query.trim() === '') return res.status(400).json({ error: 'Missing search query' });
 
 	const like = `%${query}%`;
-	const sql = `SELECT user_id, username, bio, profile_picture, date_joined FROM users WHERE username LIKE ? LIMIT 50`;
+	const sql = `SELECT user_id, username, bio, profile_picture FROM users WHERE username LIKE ? LIMIT 50`;
 	db.query(sql, [like], (err, rows) => {
 		if (err) return res.status(500).json({ error: err.message });
 		res.json(rows);
