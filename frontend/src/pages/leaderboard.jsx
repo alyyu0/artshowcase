@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, Award } from 'lucide-react';
+import { Heart, Award, Trophy } from 'lucide-react';
 import NavigationBar from './navbar';
 import '../styles/leaderboard.css';
 
@@ -54,9 +54,11 @@ function Leaderboard() {
       <main className="leaderboard-main">
         <section className="leaderboard-header">
           <div className="leaderboard-title-section">
-            <Award size={40} color="#E89B96" />
+            <div className="trophy-circle">
+              <Trophy size={50} color="white" /> 
+            </div>
             <h1 className="leaderboard-title">Leaderboard</h1>
-            <p className="leaderboard-subtitle">See who's creating the best art!</p>
+            <p className="leaderboard-subtitle">Most liked artworks in the community</p>
           </div>
 
           {/* Tabs */}

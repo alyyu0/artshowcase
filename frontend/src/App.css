@@ -341,3 +341,14 @@ body {
 .gallery-search > .form-control:active {
   transform: translateY(0.5px);
 }
+
+.trophy-circle {
+  width: 80px;
+  height: 80px;
+  background-color: #a9d8c2;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 0.3rem auto;
+}
