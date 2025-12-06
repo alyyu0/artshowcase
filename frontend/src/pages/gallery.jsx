@@ -15,8 +15,6 @@ function Gallery() {
 
   const userId = localStorage.getItem('userId');
 
-
-  //hi
   // Fetch all artworks on mount
   useEffect(() => {
     const fetchArtworks = async () => {
