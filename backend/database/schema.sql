@@ -1,88 +1,78 @@
-CREATE DATABASE IF NOT EXISTS art_showcase;
-USE art_showcase;
+-- Supabase/Postgres schema (UUID primary keys where appropriate)
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
-SET FOREIGN_KEY_CHECKS = 0;
-
--- Drop tables if they already exist
-DROP TABLE IF EXISTS leaderboard;
-DROP TABLE IF EXISTS follows;
-DROP TABLE IF EXISTS saves;
-DROP TABLE IF EXISTS comments;
-DROP TABLE IF EXISTS likes;
-DROP TABLE IF EXISTS artwork_hashtags;
-DROP TABLE IF EXISTS artwork;
-DROP TABLE IF EXISTS hashtags;
-DROP TABLE IF EXISTS users;
-
-SET FOREIGN_KEY_CHECKS = 1;
-
--- Recreate tables
-
-CREATE TABLE users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    bio VARCHAR(255),
-    profile_picture VARCHAR(255)
+-- USERS table (UUID primary key suitable for mapping to auth.users)
+CREATE TABLE IF NOT EXISTS users (
+  user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255),
+  bio VARCHAR(255),
+  profile_picture VARCHAR(500),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE artwork (
-    artwork_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    title VARCHAR(100),
-    caption VARCHAR(255),
-    image_url VARCHAR(255),
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+-- ARTWORK table
+CREATE TABLE IF NOT EXISTS artwork (
+  artwork_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  title VARCHAR(100) NOT NULL,
+  caption VARCHAR(500),
+  image_url VARCHAR(500) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE hashtags (
-    hashtag_id INT AUTO_INCREMENT PRIMARY KEY,
-    tag VARCHAR(50) UNIQUE
+-- HASHTAGS
+CREATE TABLE IF NOT EXISTS hashtags (
+  hashtag_id SERIAL PRIMARY KEY,
+  tag VARCHAR(50) UNIQUE NOT NULL
 );
 
-CREATE TABLE artwork_hashtags (
-    artwork_id INT,
-    hashtag_id INT,
-    FOREIGN KEY (artwork_id) REFERENCES artwork(artwork_id),
-    FOREIGN KEY (hashtag_id) REFERENCES hashtags(hashtag_id)
+-- ARTWORK_HASHTAGS
+CREATE TABLE IF NOT EXISTS artwork_hashtags (
+  artwork_id UUID REFERENCES artwork(artwork_id) ON DELETE CASCADE,
+  hashtag_id INTEGER REFERENCES hashtags(hashtag_id) ON DELETE CASCADE,
+  PRIMARY KEY (artwork_id, hashtag_id)
 );
 
-CREATE TABLE likes (
-    user_id INT,
-    artwork_id INT,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (artwork_id) REFERENCES artwork(artwork_id)
+-- LIKES
+CREATE TABLE IF NOT EXISTS likes (
+  user_id UUID REFERENCES users(user_id) ON DELETE CASCADE,
+  artwork_id UUID REFERENCES artwork(artwork_id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  PRIMARY KEY (user_id, artwork_id)
 );
 
-CREATE TABLE comments (
-    comment_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    artwork_id INT,
-    comment_text VARCHAR(255),
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (artwork_id) REFERENCES artwork(artwork_id)
+-- COMMENTS
+CREATE TABLE IF NOT EXISTS comments (
+  comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  artwork_id UUID NOT NULL REFERENCES artwork(artwork_id) ON DELETE CASCADE,
+  comment_text VARCHAR(500),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE saves (
-    user_id INT,
-    artwork_id INT,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (artwork_id) REFERENCES artwork(artwork_id)
+-- SAVES
+CREATE TABLE IF NOT EXISTS saves (
+  user_id UUID REFERENCES users(user_id) ON DELETE CASCADE,
+  artwork_id UUID REFERENCES artwork(artwork_id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  PRIMARY KEY (user_id, artwork_id)
 );
 
-CREATE TABLE follows (
-    follower_id INT,
-    following_id INT,
-    FOREIGN KEY (follower_id) REFERENCES users(user_id),
-    FOREIGN KEY (following_id) REFERENCES users(user_id)
+-- FOLLOWS
+CREATE TABLE IF NOT EXISTS follows (
+  follower_id UUID REFERENCES users(user_id) ON DELETE CASCADE,
+  following_id UUID REFERENCES users(user_id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  PRIMARY KEY (follower_id, following_id)
 );
 
-CREATE TABLE leaderboard (
-    leaderboard_id INT AUTO_INCREMENT PRIMARY KEY,
-    artwork_id INT,
-    month INT,
-    year INT,
-    total_likes INT,
-    FOREIGN KEY (artwork_id) REFERENCES artwork(artwork_id)
+-- LEADERBOARD
+CREATE TABLE IF NOT EXISTS leaderboard (
+  leaderboard_id SERIAL PRIMARY KEY,
+  artwork_id UUID REFERENCES artwork(artwork_id) ON DELETE CASCADE,
+  month INTEGER,
+  year INTEGER,
+  total_likes INTEGER DEFAULT 0
 );

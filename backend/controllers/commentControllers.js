@@ -1,55 +1,70 @@
 const db = require("../config/db");
 
 // Add a comment
-exports.addComment = (req, res) => {
-  const { user_id, artwork_id, content } = req.body;
-  if (!user_id || !artwork_id || !content) return res.status(400).json({ error: "Missing fields" });
+exports.addComment = async (req, res) => {
+  const { user_id, artwork_id, comment_text } = req.body;
+  if (!user_id || !artwork_id || !comment_text) return res.status(400).json({ error: "Missing fields" });
 
-  const sql = "INSERT INTO comments (user_id, artwork_id, content) VALUES (?, ?, ?)";
-  db.query(sql, [user_id, artwork_id, content], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Comment added", comment_id: result.insertId });
-  });
+  try {
+    const query = "INSERT INTO comments (user_id, artwork_id, comment_text) VALUES ($1, $2, $3) RETURNING comment_id";
+    const result = await db.query(query, [user_id, artwork_id, comment_text]);
+    res.json({ message: "Comment added", comment_id: result.rows[0].comment_id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Delete a comment (owner only)
-exports.deleteComment = (req, res) => {
+exports.deleteComment = async (req, res) => {
   const { comment_id, user_id } = req.body;
   if (!comment_id || !user_id) return res.status(400).json({ error: "Missing IDs" });
 
-  const sql = "DELETE FROM comments WHERE comment_id = ? AND user_id = ?";
-  db.query(sql, [comment_id, user_id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Comment not found or not owner" });
+  try {
+    const query = "DELETE FROM comments WHERE comment_id = $1 AND user_id = $2";
+    const result = await db.query(query, [comment_id, user_id]);
+    
+    if (result.rowCount === 0) return res.status(404).json({ error: "Comment not found or not owner" });
     res.json({ message: "Comment deleted" });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Edit a comment (owner only)
-exports.editComment = (req, res) => {
-  const { comment_id, user_id, content } = req.body;
-  if (!comment_id || !user_id || !content) return res.status(400).json({ error: "Missing fields" });
+exports.editComment = async (req, res) => {
+  const { comment_id, user_id, comment_text } = req.body;
+  if (!comment_id || !user_id || !comment_text) return res.status(400).json({ error: "Missing fields" });
 
-  const sql = "UPDATE comments SET content = ? WHERE comment_id = ? AND user_id = ?";
-  db.query(sql, [content, comment_id, user_id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Comment not found or not owner" });
+  try {
+    const query = "UPDATE comments SET comment_text = $1 WHERE comment_id = $2 AND user_id = $3";
+    const result = await db.query(query, [comment_text, comment_id, user_id]);
+    
+    if (result.rowCount === 0) return res.status(404).json({ error: "Comment not found or not owner" });
     res.json({ message: "Comment updated" });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Get comments for an artwork
-exports.getCommentsForArtwork = (req, res) => {
+exports.getCommentsForArtwork = async (req, res) => {
   const { artwork_id } = req.params;
-  const sql = `
-    SELECT c.comment_id, c.content, c.created_at, u.user_id, u.username
-    FROM comments c
-    INNER JOIN users u ON c.user_id = u.user_id
-    WHERE c.artwork_id = ?
-    ORDER BY c.created_at DESC
-  `;
-  db.query(sql, [artwork_id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
+  
+  try {
+    const query = `
+      SELECT c.comment_id, c.comment_text, c.created_at, u.user_id, u.username, u.profile_picture
+      FROM comments c
+      INNER JOIN users u ON c.user_id = u.user_id
+      WHERE c.artwork_id = $1
+      ORDER BY c.created_at DESC
+    `;
+    const result = await db.query(query, [artwork_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };

@@ -9,6 +9,9 @@ const searchRoutes = require('./routes/searchRoutes');
 const artworkRoutes = require('./routes/artworkRoutes');
 const userRoutes = require('./routes/userRoutes');
 const followRoutes = require('./routes/followRoutes');
+const saveRoutes = require('./routes/saveRoutes');
+const leaderboardRoutes = require('./routes/leaderboardRoutes');
+const db = require('./config/db');
 
 const app = express();
 
@@ -25,6 +28,8 @@ app.use('/api/artwork', artworkRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/follows', followRoutes);
+app.use('/api/saves', saveRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 
 
 app.get('/api/test', (req, res) => {
@@ -33,20 +38,34 @@ app.get('/api/test', (req, res) => {
 
 app.get('/api/health', async (req, res) => {
   try {
-    const { createConnection } = require('./database/connection');
-    const connection = await createConnection();
-    await connection.execute('SELECT 1');
-    await connection.end();
-    
-    res.json({ 
+    // simple query to verify DB connection and counts
+    const dbRes = await db.query('SELECT 1');
+    const usersCountRes = await db.query('SELECT COUNT(*)::int AS count FROM users');
+    const artworkCountRes = await db.query('SELECT COUNT(*)::int AS count FROM artwork');
+
+    // try to parse host from DATABASE_URL (if present)
+    let dbHost = null;
+    try {
+      if (process.env.DATABASE_URL) {
+        const parsed = new URL(process.env.DATABASE_URL);
+        dbHost = parsed.hostname;
+      }
+    } catch (err) {
+      dbHost = null;
+    }
+
+    res.json({
       success: true,
-      message: 'Backend and database are connected successfully' 
+      message: 'Backend and database are connected successfully',
+      dbHost,
+      users: usersCountRes.rows[0].count,
+      artworks: artworkCountRes.rows[0].count
     });
   } catch (error) {
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Database connection failed',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -72,6 +91,6 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📊 Database: ${process.env.DB_NAME}`);
+  console.log(`📊 Database: Supabase PostgreSQL`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
 });

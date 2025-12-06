@@ -1,70 +1,81 @@
 const db = require("../config/db");
 
 // Save artwork
-exports.saveArtwork = (req, res) => {
+exports.saveArtwork = async (req, res) => {
   const { user_id, artwork_id } = req.body;
 
   if (!user_id || !artwork_id) {
     return res.status(400).json({ error: "Missing user or artwork ID" });
   }
 
-  const sql = "INSERT INTO saves (user_id, artwork_id) VALUES (?, ?)";
-  db.query(sql, [user_id, artwork_id], (err, result) => {
-    if (err) {
-      if (err.code === "ER_DUP_ENTRY") {
-        return res.status(400).json({ error: "Already saved this artwork" });
-      }
-      return res.status(500).json({ error: err.message });
+  try {
+    const query = "INSERT INTO saves (user_id, artwork_id) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING *";
+    const result = await db.query(query, [user_id, artwork_id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: "Already saved this artwork" });
     }
+    
     res.json({ message: "Artwork saved successfully!" });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Unsave artwork
-exports.unsaveArtwork = (req, res) => {
+exports.unsaveArtwork = async (req, res) => {
   const { user_id, artwork_id } = req.body;
 
   if (!user_id || !artwork_id) {
     return res.status(400).json({ error: "Missing IDs" });
   }
 
-  const sql = "DELETE FROM saves WHERE user_id = ? AND artwork_id = ?";
-  db.query(sql, [user_id, artwork_id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    const query = "DELETE FROM saves WHERE user_id = $1 AND artwork_id = $2";
+    const result = await db.query(query, [user_id, artwork_id]);
     
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ error: "Artwork not saved" });
     }
     res.json({ message: "Artwork unsaved successfully!" });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Get user's saved artworks
-exports.getSavedArtworks = (req, res) => {
+exports.getSavedArtworks = async (req, res) => {
   const { user_id } = req.params;
 
-  const sql = `
-    SELECT artwork.*, users.username
-    FROM artwork
-    INNER JOIN saves ON artwork.artwork_id = saves.artwork_id
-    INNER JOIN users ON artwork.user_id = users.user_id
-    WHERE saves.user_id = ?
-    ORDER BY saves.created_at DESC
-  `;
-  
-  db.query(sql, [user_id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
+  try {
+    const query = `
+      SELECT artwork.*, users.username, users.profile_picture
+      FROM artwork
+      INNER JOIN saves ON artwork.artwork_id = saves.artwork_id
+      INNER JOIN users ON artwork.user_id = users.user_id
+      WHERE saves.user_id = $1
+      ORDER BY saves.created_at DESC
+    `;
+    const result = await db.query(query, [user_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Check if artwork is saved
-exports.isSaved = (req, res) => {
+exports.isSaved = async (req, res) => {
   const { user_id, artwork_id } = req.params;
 
-  const sql = "SELECT * FROM saves WHERE user_id = ? AND artwork_id = ?";
-  db.query(sql, [user_id, artwork_id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ isSaved: rows.length > 0 });
-  });
+  try {
+    const query = "SELECT * FROM saves WHERE user_id = $1 AND artwork_id = $2";
+    const result = await db.query(query, [user_id, artwork_id]);
+    res.json({ isSaved: result.rows.length > 0 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };

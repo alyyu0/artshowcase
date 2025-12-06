@@ -1,7 +1,7 @@
 const db = require("../config/db");
 
 // Follow a user
-exports.followUser = (req, res) => {
+exports.followUser = async (req, res) => {
   const { follower_id, following_id } = req.body;
 
   if (!follower_id || !following_id) {
@@ -12,78 +12,91 @@ exports.followUser = (req, res) => {
     return res.status(400).json({ error: "Cannot follow yourself" });
   }
 
-  const sql = "INSERT INTO follows (follower_id, following_id) VALUES (?, ?)";
-  db.query(sql, [follower_id, following_id], (err, result) => {
-    if (err) {
-      if (err.code === "ER_DUP_ENTRY") {
-        return res.status(400).json({ error: "Already following this user" });
-      }
-      return res.status(500).json({ error: err.message });
+  try {
+    const query = "INSERT INTO follows (follower_id, following_id) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING *";
+    const result = await db.query(query, [follower_id, following_id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: "Already following this user" });
     }
+    
     res.json({ message: "Successfully followed user!" });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Unfollow a user
-exports.unfollowUser = (req, res) => {
+exports.unfollowUser = async (req, res) => {
   const { follower_id, following_id } = req.body;
 
   if (!follower_id || !following_id) {
     return res.status(400).json({ error: "Missing IDs" });
   }
 
-  const sql = "DELETE FROM follows WHERE follower_id = ? AND following_id = ?";
-  db.query(sql, [follower_id, following_id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    const query = "DELETE FROM follows WHERE follower_id = $1 AND following_id = $2";
+    const result = await db.query(query, [follower_id, following_id]);
     
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ error: "Not following this user" });
     }
     res.json({ message: "Successfully unfollowed user!" });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Get followers
-exports.getFollowers = (req, res) => {
+exports.getFollowers = async (req, res) => {
   const { user_id } = req.params;
 
-  const sql = `
-    SELECT users.user_id, users.username, users.email
-    FROM users
-    INNER JOIN follows ON users.user_id = follows.follower_id
-    WHERE follows.following_id = ?
-  `;
-  
-  db.query(sql, [user_id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
+  try {
+    const query = `
+      SELECT users.user_id, users.username, users.email, users.profile_picture
+      FROM users
+      INNER JOIN follows ON users.user_id = follows.follower_id
+      WHERE follows.following_id = $1
+    `;
+    const result = await db.query(query, [user_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Get following
-exports.getFollowing = (req, res) => {
+exports.getFollowing = async (req, res) => {
   const { user_id } = req.params;
 
-  const sql = `
-    SELECT users.user_id, users.username, users.email
-    FROM users
-    INNER JOIN follows ON users.user_id = follows.following_id
-    WHERE follows.follower_id = ?
-  `;
-  
-  db.query(sql, [user_id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
+  try {
+    const query = `
+      SELECT users.user_id, users.username, users.email, users.profile_picture
+      FROM users
+      INNER JOIN follows ON users.user_id = follows.following_id
+      WHERE follows.follower_id = $1
+    `;
+    const result = await db.query(query, [user_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Check if following
-exports.isFollowing = (req, res) => {
+exports.isFollowing = async (req, res) => {
   const { follower_id, following_id } = req.params;
 
-  const sql = "SELECT * FROM follows WHERE follower_id = ? AND following_id = ?";
-  db.query(sql, [follower_id, following_id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ isFollowing: rows.length > 0 });
-  });
+  try {
+    const query = "SELECT * FROM follows WHERE follower_id = $1 AND following_id = $2";
+    const result = await db.query(query, [follower_id, following_id]);
+    res.json({ isFollowing: result.rows.length > 0 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
