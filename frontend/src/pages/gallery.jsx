@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Bookmark } from 'lucide-react';
 import NavigationBar from "./navbar";
-import '../styles/gallery.css';
+// consolidated styles moved into ../App.css
 
 function Gallery() {
   const navigate = useNavigate();
@@ -145,7 +145,7 @@ function Gallery() {
           <h2 className="gallery-title">Art Gallery</h2>
           <p className="gallery-subtitle">Search by hashtags or usernames</p>
 
-          <div className="gallery-search" style={{ position: 'relative', width: '100%' }}>
+            <div className="gallery-search" style={{ position: 'relative', width: '100%' }}>
             <input
               className="form-control"
               type="text"
@@ -161,7 +161,7 @@ function Gallery() {
                 borderRadius: '12px',
                 background: '#FFFFFF',
                 color: '#333',
-                fontFamily: "'JosefinSans', sans-serif",
+                
               }}
             />
             
@@ -239,6 +239,19 @@ function Gallery() {
           {allArtworks.length > 0 ? (
             allArtworks.map((artwork) => (
               <div key={artwork.artwork_id} className="artwork-card">
+                {/* Top header section (avatar + username) */}
+                <div className="artwork-header">
+                  <img
+                    src={artwork.profile_picture || 'https://via.placeholder.com/32?text=User'}
+                    alt={artwork.username}
+                    className="artwork-user-avatar"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/32?text=User';
+                    }}
+                  />
+                  <span className="artwork-username">@{artwork.username}</span>
+                </div>
+
                 <div className="artwork-image-container">
                   <img 
                     src={artwork.image_url} 
@@ -270,20 +283,7 @@ function Gallery() {
                 </div>
 
                 <div className="artwork-info">
-                  <div className="artwork-header">
-                    <img
-                      src={artwork.profile_picture || 'https://via.placeholder.com/32?text=User'}
-                      alt={artwork.username}
-                      className="artwork-user-avatar"
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/32?text=User';
-                      }}
-                    />
-                    <span className="artwork-username">@{artwork.username}</span>
-                  </div>
-
                   <h3 className="artwork-title">{artwork.title}</h3>
-                  
                   {artwork.caption && (
                     <p className="artwork-caption">{artwork.caption}</p>
                   )}
@@ -299,6 +299,7 @@ function Gallery() {
                     <div className="stat">
                       <MessageCircle size={16} /> <span>0</span>
                     </div>
+                    <div className="spacer" />
                     <div className="stat">
                       <Bookmark size={16} />
                     </div>
