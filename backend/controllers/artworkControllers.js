@@ -12,16 +12,26 @@ exports.createArtwork = async (req, res) => {
 exports.getAllArtworks = async (req, res) => {
   try {
     const sql = `
-      SELECT artwork.*, users.username, users.profile_picture
-      FROM artwork 
+      SELECT artwork.*, users.username, users.profile_picture,
+        COALESCE(like_counts.count, 0) AS like_count,
+        COALESCE(comment_counts.count, 0) AS comment_count
+      FROM artwork
       JOIN users ON artwork.user_id = users.user_id
+      LEFT JOIN (
+        SELECT artwork_id, COUNT(*) AS count FROM likes GROUP BY artwork_id
+      ) like_counts ON artwork.artwork_id = like_counts.artwork_id
+      LEFT JOIN (
+        SELECT artwork_id, COUNT(*) AS count FROM comments GROUP BY artwork_id
+      ) comment_counts ON artwork.artwork_id = comment_counts.artwork_id
       ORDER BY artwork.artwork_id DESC
     `;
     const result = await db.query(sql);
     const formattedRows = result.rows.map(row => ({
       ...row,
       image_url: row.image_url || 'https://via.placeholder.com/300x300?text=No+Image',
-      profile_picture: row.profile_picture || 'https://via.placeholder.com/40?text=User'
+      profile_picture: row.profile_picture || 'https://via.placeholder.com/40?text=User',
+      like_count: Number(row.like_count) || 0,
+      comment_count: Number(row.comment_count) || 0
     }));
     res.json(formattedRows);
   } catch (err) {
@@ -37,14 +47,29 @@ exports.getArtworkById = async (req, res) => {
 
   try {
     const sql = `
-      SELECT artwork.*, users.username, users.profile_picture
+      SELECT artwork.*, users.username, users.profile_picture,
+        COALESCE(like_counts.count, 0) AS like_count,
+        COALESCE(comment_counts.count, 0) AS comment_count
       FROM artwork
       JOIN users ON artwork.user_id = users.user_id
+      LEFT JOIN (
+        SELECT artwork_id, COUNT(*) AS count FROM likes GROUP BY artwork_id
+      ) like_counts ON artwork.artwork_id = like_counts.artwork_id
+      LEFT JOIN (
+        SELECT artwork_id, COUNT(*) AS count FROM comments GROUP BY artwork_id
+      ) comment_counts ON artwork.artwork_id = comment_counts.artwork_id
       WHERE artwork.artwork_id = $1
     `;
     const result = await db.query(sql, [artwork_id]);
     if (result.rows.length === 0) return res.status(404).json({ error: "Artwork not found" });
-    res.json(result.rows[0]);
+    const row = result.rows[0];
+    res.json({
+      ...row,
+      image_url: row.image_url || 'https://via.placeholder.com/300x300?text=No+Image',
+      profile_picture: row.profile_picture || 'https://via.placeholder.com/40?text=User',
+      like_count: Number(row.like_count) || 0,
+      comment_count: Number(row.comment_count) || 0
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -58,9 +83,17 @@ exports.getArtworksByUser = async (req, res) => {
 
   try {
     const sql = `
-      SELECT artwork.*, users.username, users.profile_picture
+      SELECT artwork.*, users.username, users.profile_picture,
+        COALESCE(like_counts.count, 0) AS like_count,
+        COALESCE(comment_counts.count, 0) AS comment_count
       FROM artwork
       JOIN users ON artwork.user_id = users.user_id
+      LEFT JOIN (
+        SELECT artwork_id, COUNT(*) AS count FROM likes GROUP BY artwork_id
+      ) like_counts ON artwork.artwork_id = like_counts.artwork_id
+      LEFT JOIN (
+        SELECT artwork_id, COUNT(*) AS count FROM comments GROUP BY artwork_id
+      ) comment_counts ON artwork.artwork_id = comment_counts.artwork_id
       WHERE artwork.user_id = $1
       ORDER BY artwork.artwork_id DESC
     `;
@@ -68,7 +101,9 @@ exports.getArtworksByUser = async (req, res) => {
     const formattedRows = result.rows.map(row => ({
       ...row,
       image_url: row.image_url || 'https://via.placeholder.com/300x300?text=No+Image',
-      profile_picture: row.profile_picture || 'https://via.placeholder.com/40?text=User'
+      profile_picture: row.profile_picture || 'https://via.placeholder.com/40?text=User',
+      like_count: Number(row.like_count) || 0,
+      comment_count: Number(row.comment_count) || 0
     }));
     res.json(formattedRows);
   } catch (err) {

@@ -11,6 +11,7 @@ const {
 	deleteArtwork,
 	uploadArtwork,
 } = require("../controllers/artworkControllers");
+const { getFollowedArtworks } = require("../controllers/followedArtworksController");
 
 // Configure multer for file uploads (memory storage)
 const upload = multer({ storage: multer.memoryStorage() });
@@ -23,6 +24,7 @@ router.post("/upload", upload.single("image"), uploadArtwork);
 
 // Read endpoints
 router.get("/all", getAllArtworks);
+router.get("/followed/:user_id", getFollowedArtworks);
 router.get("/:artwork_id", getArtworkById);
 router.get("/user/:user_id", getArtworksByUser);
 

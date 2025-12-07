@@ -14,6 +14,7 @@ exports.followUser = async (req, res) => {
 
   try {
     const query = "INSERT INTO follows (follower_id, following_id) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING *";
+    console.log('followUser called with:', { follower_id, following_id });
     const result = await db.query(query, [follower_id, following_id]);
     
     if (result.rows.length === 0) {

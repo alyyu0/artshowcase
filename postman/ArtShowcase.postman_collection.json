@@ -1,0 +1,169 @@
+{
+  "info": {
+    "name": "ArtShowcase API",
+    "description": "Collection for testing ArtShowcase backend endpoints (local). Import into Postman and set environment variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/auth/signup",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save token and userId to environment for subsequent requests",
+                  "if (pm.response.json()) {",
+                  "  var data = pm.response.json();",
+                  "  if (data.token) pm.environment.set('token', data.token);",
+                  "  if (data.userId) pm.environment.set('userId', data.userId);",
+                  "  if (data.user_id) pm.environment.set('userId', data.user_id);",
+                  "  console.log('Saved token and userId to environment');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Artworks",
+      "item": [
+        {
+          "name": "Get All Artworks",
+          "request": { "method": "GET", "url": "{{baseUrl}}/artwork/all" }
+        },
+        {
+          "name": "Get Followed Artworks",
+          "request": { "method": "GET", "url": "{{baseUrl}}/artwork/followed/{{userId}}" }
+        },
+        {
+          "name": "Get User Artworks",
+          "request": { "method": "GET", "url": "{{baseUrl}}/artwork/user/{{targetUserId}}" }
+        },
+        {
+          "name": "Get Artwork By Id",
+          "request": { "method": "GET", "url": "{{baseUrl}}/artwork/{{artworkId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Follows",
+      "item": [
+        {
+          "name": "Follow User",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/follows/follow",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"follower_id\": \"{{userId}}\",\n  \"following_id\": \"{{targetUserId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Unfollow User",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/follows/unfollow",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"follower_id\": \"{{userId}}\",\n  \"following_id\": \"{{targetUserId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Check Following",
+          "request": { "method": "GET", "url": "{{baseUrl}}/follows/check/{{userId}}/{{targetUserId}}" }
+        },
+        {
+          "name": "Get Followers",
+          "request": { "method": "GET", "url": "{{baseUrl}}/follows/followers/{{targetUserId}}" }
+        },
+        {
+          "name": "Get Following",
+          "request": { "method": "GET", "url": "{{baseUrl}}/follows/following/{{userId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Likes & Saves",
+      "item": [
+        {
+          "name": "Get User Likes",
+          "request": { "method": "GET", "url": "{{baseUrl}}/likes/user/{{userId}}" }
+        },
+        {
+          "name": "Like Artwork",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/likes/like",
+            "body": { "mode": "raw", "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"artwork_id\": \"{{artworkId}}\"\n}" }
+          }
+        },
+        {
+          "name": "Unlike Artwork",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/likes/unlike",
+            "body": { "mode": "raw", "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"artwork_id\": \"{{artworkId}}\"\n}" }
+          }
+        },
+        {
+          "name": "Get Saved Artworks",
+          "request": { "method": "GET", "url": "{{baseUrl}}/saves/saved/{{userId}}" }
+        },
+        {
+          "name": "Save Artwork",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/saves/save",
+            "body": { "mode": "raw", "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"artwork_id\": \"{{artworkId}}\"\n}" }
+          }
+        },
+        {
+          "name": "Unsave Artwork",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/saves/unsave",
+            "body": { "mode": "raw", "raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"artwork_id\": \"{{artworkId}}\"\n}" }
+          }
+        }
+      ]
+    }
+  ]
+}

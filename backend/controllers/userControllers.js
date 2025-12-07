@@ -18,4 +18,22 @@ exports.getUserById = async (req, res) => {
   }
 };
 
+// Get user profile by username
+exports.getUserByUsername = async (req, res) => {
+  const { username } = req.params;
+  if (!username) return res.status(400).json({ error: 'Missing username' });
+
+  try {
+    const sql = 'SELECT user_id, username, bio, profile_picture FROM users WHERE username = $1 LIMIT 1';
+    const result = await db.query(sql, [username]);
+
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = exports;
