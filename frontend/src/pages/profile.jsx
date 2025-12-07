@@ -141,6 +141,7 @@ function Profile() {
   useEffect(() => {
     if (!isOwnProfile || !profileUserId) {
       setLikedList([]);
+      setLikedArtworks(new Set());
       return;
     }
 
@@ -166,7 +167,7 @@ function Profile() {
     fetchLiked();
   }, [isOwnProfile, profileUserId]);
 
-  // Like/save handlers
+  // Like handler
   const handleLike = async (artworkId) => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
@@ -189,12 +190,33 @@ function Profile() {
         if (isLiked) next.delete(artworkId);
         else next.add(artworkId);
         setLikedArtworks(next);
+        
+        // Update like counts
+        if (activeTab === 'artworks') {
+          setArtworks(prev => prev.map(a => 
+            a.artwork_id === artworkId ? { 
+              ...a, 
+              like_count: (Number(a.like_count) || 0) + (isLiked ? -1 : 1) 
+            } : a
+          ));
+        } else if (activeTab === 'likes' && isLiked) {
+          // Remove from liked list if unliking
+          setLikedList(prev => prev.filter(a => a.artwork_id !== artworkId));
+        } else if (activeTab === 'saved') {
+          setSavedArtworks(prev => prev.map(a => 
+            a.artwork_id === artworkId ? { 
+              ...a, 
+              like_count: (Number(a.like_count) || 0) + (isLiked ? -1 : 1) 
+            } : a
+          ));
+        }
       }
     } catch (err) {
       console.error('Error liking artwork:', err);
     }
   };
 
+  // Save handler
   const handleSave = async (artworkId) => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
@@ -217,11 +239,27 @@ function Profile() {
           setSavedArtworks(prev => prev.filter(a => a.artwork_id !== artworkId));
         } else {
           const found = artworks.find(a => a.artwork_id === artworkId);
-          if (found) setSavedArtworks(prev => [found, ...prev]);
+          if (found) {
+            setSavedArtworks(prev => [found, ...prev]);
+          } else {
+            // Also check likedList for the artwork
+            const likedFound = likedList.find(a => a.artwork_id === artworkId);
+            if (likedFound) setSavedArtworks(prev => [likedFound, ...prev]);
+          }
         }
       }
     } catch (err) {
       console.error('Error saving artwork:', err);
+    }
+  };
+
+  // Get current artworks based on active tab
+  const getCurrentArtworks = () => {
+    switch (activeTab) {
+      case 'artworks': return artworks;
+      case 'likes': return likedList;
+      case 'saved': return savedArtworks;
+      default: return artworks;
     }
   };
 
@@ -257,137 +295,349 @@ function Profile() {
     }
   };
 
+  const handleUserClick = (username) => {
+    if (!localStorage.getItem('loggedIn')) {
+      alert('Please login or signup to view user profiles');
+      navigate('/login');
+      return;
+    }
+    navigate(`/profile/${username}`);
+  };
+
   const avatar = user?.profile_picture || null;
 
   return (
     <div className="cream-background">
       <NavigationBar />
-      <main style={{ padding: '2rem 0' }}>
-        <section style={{ textAlign: 'center', paddingTop: '1.5rem' }}>
+      <main className="gallery-main" style={{ paddingTop: '2rem' }}>
+        {/* Profile Header */}
+        <section style={{ textAlign: 'center', padding: '1.5rem 1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
             {avatar ? (
-              <img src={avatar} alt="profile" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover' }} />
+              <img 
+                src={avatar} 
+                alt="profile" 
+                style={{ 
+                  width: 120, 
+                  height: 120, 
+                  borderRadius: '50%', 
+                  objectFit: 'cover',
+                  border: '3px solid #fff',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }} 
+              />
             ) : (
-              <div style={{ width: 120, height: 120, borderRadius: '50%', background: '#fff', border: '2px solid #eee' }} />
+              <div style={{ 
+                width: 120, 
+                height: 120, 
+                borderRadius: '50%', 
+                background: '#fff', 
+                border: '3px solid #eee',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                fontSize: '2rem',
+                color: '#E89B96'
+              }}>
+                {profileUsername?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
             )}
           </div>
 
-          <h3>{user ? `@${user.username}` : 'User not found'}</h3>
-          <p style={{ color: '#666' }}>{user?.bio || ''}</p>
+          <h3 style={{ margin: '0.5rem 0', fontSize: '1.5rem', fontWeight: 600 }}>
+            {user ? `@${user.username}` : 'User not found'}
+          </h3>
+          <p style={{ color: '#666', maxWidth: '500px', margin: '0 auto' }}>
+            {user?.bio || 'No bio yet'}
+          </p>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '1rem' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: '2rem', 
+            marginTop: '1rem',
+            fontSize: '0.95rem'
+          }}>
             <div><strong>{artworks.length}</strong> artworks</div>
             <div><strong>{followersCount}</strong> followers</div>
             <div><strong>{followingCount}</strong> following</div>
           </div>
 
-          <div style={{ marginTop: '1rem' }}>
+          <div style={{ marginTop: '1.5rem' }}>
             {isOwnProfile ? (
-              <button className="blue-btn" onClick={handleEdit} style={{ padding: '0.4rem 1rem', fontSize: '0.80rem', width: 'auto', maxWidth: '120px', margin: '0 auto', display: 'block' }}>Edit Profile</button>
+              <button 
+                className="blue-btn" 
+                onClick={handleEdit} 
+                style={{ 
+                  padding: '0.5rem 1.5rem', 
+                  fontSize: '0.85rem', 
+                  width: 'auto',
+                  borderRadius: '20px'
+                }}
+              >
+                Edit Profile
+              </button>
             ) : (
-              <button className="blue-btn" onClick={handleFollowToggle} style={{ padding: '0.4rem 1rem', fontSize: '0.80rem', width: 'auto', maxWidth: '120px', margin: '0 auto', display: 'block' }}>{isFollowing ? 'Following' : 'Follow'}</button>
+              <button 
+                className={`blue-btn ${isFollowing ? 'following' : ''}`}
+                onClick={handleFollowToggle} 
+                style={{ 
+                  padding: '0.5rem 1.5rem', 
+                  fontSize: '0.85rem', 
+                  width: 'auto',
+                  borderRadius: '20px',
+                  backgroundColor: isFollowing ? '#6c757d' : '#8a92cb'
+                }}
+              >
+                {isFollowing ? 'Following' : 'Follow'}
+              </button>
             )}
           </div>
 
           {/* Tabs */}
-          <div style={{ marginTop: '2rem', borderBottom: '1px solid #e0e0e0' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem' }}>
-              <button onClick={() => setActiveTab('artworks')} style={{ background: 'none', border: 'none', padding: '0.75rem 0', cursor: 'pointer', fontWeight: activeTab === 'artworks' ? 600 : 400, color: activeTab === 'artworks' ? '#E89B96' : '#555', borderBottom: activeTab === 'artworks' ? '3px solid #E89B96' : 'none', marginBottom: '-1px' }}>
-                <Image size={18} style={{ marginRight: '0.5rem', display: 'inline' }} /> Artworks
+          <div style={{ 
+            marginTop: '2rem', 
+            borderBottom: '1px solid #e0e0e0',
+            maxWidth: '600px',
+            margin: '2rem auto 0'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              gap: '3rem'
+            }}>
+              <button 
+                onClick={() => setActiveTab('artworks')} 
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  padding: '0.75rem 0', 
+                  cursor: 'pointer', 
+                  fontWeight: activeTab === 'artworks' ? 600 : 400, 
+                  color: activeTab === 'artworks' ? '#E89B96' : '#555', 
+                  borderBottom: activeTab === 'artworks' ? '3px solid #E89B96' : 'none', 
+                  marginBottom: '-1px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <Image size={18} /> Artworks
               </button>
               {isOwnProfile && (
                 <>
-                  <button onClick={() => setActiveTab('likes')} style={{ background: 'none', border: 'none', padding: '0.75rem 0', cursor: 'pointer', fontWeight: activeTab === 'likes' ? 600 : 400, color: activeTab === 'likes' ? '#E89B96' : '#555', borderBottom: activeTab === 'likes' ? '3px solid #E89B96' : 'none', marginBottom: '-1px' }}>
-                    <Heart size={18} style={{ marginRight: '0.5rem', display: 'inline' }} /> Likes ({likedList.length})
+                  <button 
+                    onClick={() => setActiveTab('likes')} 
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      padding: '0.75rem 0', 
+                      cursor: 'pointer', 
+                      fontWeight: activeTab === 'likes' ? 600 : 400, 
+                      color: activeTab === 'likes' ? '#E89B96' : '#555', 
+                      borderBottom: activeTab === 'likes' ? '3px solid #E89B96' : 'none', 
+                      marginBottom: '-1px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    <Heart size={18} /> Likes ({likedList.length})
                   </button>
-                  <button onClick={() => setActiveTab('saved')} style={{ background: 'none', border: 'none', padding: '0.75rem 0', cursor: 'pointer', fontWeight: activeTab === 'saved' ? 600 : 400, color: activeTab === 'saved' ? '#E89B96' : '#555', borderBottom: activeTab === 'saved' ? '3px solid #E89B96' : 'none', marginBottom: '-1px' }}>
-                    <Bookmark size={18} style={{ marginRight: '0.5rem', display: 'inline' }} /> Saved ({savedArtworks.length})
+                  <button 
+                    onClick={() => setActiveTab('saved')} 
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      padding: '0.75rem 0', 
+                      cursor: 'pointer', 
+                      fontWeight: activeTab === 'saved' ? 600 : 400, 
+                      color: activeTab === 'saved' ? '#E89B96' : '#555', 
+                      borderBottom: activeTab === 'saved' ? '3px solid #E89B96' : 'none', 
+                      marginBottom: '-1px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    <Bookmark size={18} /> Saved ({savedArtworks.length})
                   </button>
                 </>
               )}
             </div>
           </div>
+        </section>
 
-          {/* Tab Content */}
-          <div style={{ marginTop: '2rem', minHeight: '300px' }}>
-            {activeTab === 'artworks' && (
-              artworks.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#999' }}>No artworks yet</div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
-                  {artworks.map(art => (
-                    <div key={art.artwork_id} className="artwork-card" onClick={() => openPostModal(art)} style={{ cursor: 'pointer' }}>
-                      <div className="artwork-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem' }}>
-                        <img src={art.profile_picture || 'https://via.placeholder.com/32'} alt={art.username} style={{ width: 32, height: 32, borderRadius: '50%' }} />
-                        <span>@{art.username}</span>
-                      </div>
-                      <img src={art.image_url} alt={art.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-                      <div style={{ padding: '1rem' }}>
-                        <h4>{art.title}</h4>
-                        <p>{art.caption}</p>
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                          <span onClick={(e) => { e.stopPropagation(); handleLike(art.artwork_id); }} style={{ cursor: 'pointer' }}>❤️ {art.like_count || 0}</span>
-                          <span>💬 {art.comment_count || 0}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+        {/* Artworks Grid (Same as Gallery) */}
+        <section className="gallery-grid" style={{ padding: '2rem 1rem' }}>
+          {getCurrentArtworks().length > 0 ? (
+            getCurrentArtworks().map((artwork) => (
+              <div key={artwork.artwork_id} className="artwork-card" onClick={() => openPostModal(artwork)}>
+                {/* Top header section (avatar + username) */}
+                <div className="artwork-header">
+                  <img
+                    src={artwork.profile_picture || 'https://via.placeholder.com/32?text=User'}
+                    alt={artwork.username}
+                    className="artwork-user-avatar"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/32?text=User';
+                    }}
+                    onClick={(e) => { e.stopPropagation(); handleUserClick(artwork.username); }}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <span
+                    className="artwork-username"
+                    onClick={(e) => { e.stopPropagation(); handleUserClick(artwork.username); }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    @{artwork.username}
+                  </span>
                 </div>
-              )
-            )}
 
-            {isOwnProfile && activeTab === 'likes' && (
-              likedList.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#999' }}>No likes yet</div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
-                  {likedList.map(art => (
-                    <div key={art.artwork_id} className="artwork-card" onClick={() => openPostModal(art)} style={{ cursor: 'pointer' }}>
-                      <div className="artwork-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem' }}>
-                        <img src={art.profile_picture || 'https://via.placeholder.com/32'} alt={art.username} style={{ width: 32, height: 32, borderRadius: '50%' }} />
-                        <span>@{art.username}</span>
-                      </div>
-                      <img src={art.image_url} alt={art.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-                      <div style={{ padding: '1rem' }}>
-                        <h4>{art.title}</h4>
-                        <p>{art.caption}</p>
-                        <span>❤️ {art.like_count}</span>
-                      </div>
-                    </div>
-                  ))}
+                <div className="artwork-image-container">
+                  <img 
+                    src={artwork.image_url} 
+                    alt={artwork.title} 
+                    className="artwork-image"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/300x300?text=Image+Not+Found';
+                    }}
+                  />
+                  <div className="artwork-overlay">
+                    <button
+                      className={`artwork-action-btn ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }}
+                      aria-label="Like"
+                      style={{ marginRight: '0.2rem' }}
+                    >
+                      <Heart size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
+                    </button>
+                    <button 
+                      className="artwork-action-btn" 
+                      style={{ marginRight: '0.2rem' }} 
+                      onClick={(e) => { e.stopPropagation(); openPostModal(artwork); }} 
+                      aria-label="Comments"
+                    >
+                      <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
+                    </button>
+                    {isOwnProfile && (
+                      <button
+                        className={`artwork-action-btn ${savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'saved' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }}
+                        aria-label="Save"
+                      >
+                        <Bookmark size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              )
-            )}
 
-            {isOwnProfile && activeTab === 'saved' && (
-              savedArtworks.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#999' }}>No saved artworks yet</div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
-                  {savedArtworks.map(art => (
-                    <div key={art.artwork_id} className="artwork-card" onClick={() => openPostModal(art)} style={{ cursor: 'pointer' }}>
-                      <div className="artwork-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem' }}>
-                        <img src={art.profile_picture || 'https://via.placeholder.com/32'} alt={art.username} style={{ width: 32, height: 32, borderRadius: '50%' }} />
-                        <span>@{art.username}</span>
-                      </div>
-                      <img src={art.image_url} alt={art.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-                      <div style={{ padding: '1rem' }}>
-                        <h4>{art.title}</h4>
-                        <p>{art.caption}</p>
-                        <span>❤️ {art.like_count}</span>
-                      </div>
+                <div className="artwork-info">
+                  <h3 className="artwork-title">{artwork.title}</h3>
+                  <div className="artwork-tags">
+                    {artwork.tags && artwork.tags.split(',').slice(0, 2).map((tag, index) => (
+                      <span key={index} className="tag">#{tag.trim()}</span>
+                    ))}
+                    {(!artwork.tags || artwork.tags.trim() === '') && (
+                      <span className="tag">Artwork</span>
+                    )}
+                  </div>
+                  {artwork.caption && (
+                    <p className="artwork-caption single-line-caption">{artwork.caption}</p>
+                  )}
+                  <div className="artwork-stats">
+                    <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }}>
+                      <Heart size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} /> 
+                      <span className="count">{artwork.like_count ?? 0}</span>
                     </div>
-                  ))}
+                    <div className="stat" onClick={(e) => { e.stopPropagation(); openPostModal(artwork); }}>
+                      <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="card-icon" /> 
+                      <span className="count">{artwork.comment_count ?? 0}</span>
+                    </div>
+                    <div className="spacer" />
+                    {isOwnProfile && (
+                      <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }}>
+                        <Bookmark size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'saved' : ''}`} />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )
-            )}
-          </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ 
+              textAlign: 'center', 
+              gridColumn: '1/-1', 
+              padding: '3rem', 
+              color: '#999' 
+            }}>
+              <div style={{ 
+                fontSize: '3rem', 
+                marginBottom: '1rem',
+                color: '#e0e0e0'
+              }}>
+                {activeTab === 'artworks' && '🎨'}
+                {activeTab === 'likes' && '❤️'}
+                {activeTab === 'saved' && '📌'}
+              </div>
+              <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                {activeTab === 'artworks' && 'No artworks yet'}
+                {activeTab === 'likes' && 'No likes yet'}
+                {activeTab === 'saved' && 'No saved artworks yet'}
+              </p>
+              <p style={{ color: '#aaa', fontSize: '0.9rem' }}>
+                {activeTab === 'artworks' && 'Start creating and sharing your artwork!'}
+                {activeTab === 'likes' && 'Like some artworks to see them here'}
+                {activeTab === 'saved' && 'Save artworks to view them later'}
+              </p>
+            </div>
+          )}
         </section>
 
         <PostModal
           show={showPostModal}
           onHide={() => setShowPostModal(false)}
           artwork={selectedArtwork}
+          onCommentAdded={(artworkId) => {
+            // Update comment counts
+            if (activeTab === 'artworks') {
+              setArtworks(prev => prev.map(a => 
+                a.artwork_id === artworkId ? { ...a, comment_count: (Number(a.comment_count)||0) + 1 } : a
+              ));
+            } else if (activeTab === 'likes') {
+              setLikedList(prev => prev.map(a => 
+                a.artwork_id === artworkId ? { ...a, comment_count: (Number(a.comment_count)||0) + 1 } : a
+              ));
+            } else if (activeTab === 'saved') {
+              setSavedArtworks(prev => prev.map(a => 
+                a.artwork_id === artworkId ? { ...a, comment_count: (Number(a.comment_count)||0) + 1 } : a
+              ));
+            }
+          }}
+          onLikeToggled={(artworkId, liked) => {
+            // Update liked set
+            setLikedArtworks(prev => {
+              const next = new Set(prev);
+              if (liked) next.add(artworkId); else next.delete(artworkId);
+              return next;
+            });
+            
+            // Update counts in all tabs
+            if (activeTab === 'artworks') {
+              setArtworks(prev => prev.map(a => 
+                a.artwork_id === artworkId ? { ...a, like_count: (Number(a.like_count)||0) + (liked ? 1 : -1) } : a
+              ));
+            } else if (activeTab === 'likes') {
+              setLikedList(prev => prev.map(a => 
+                a.artwork_id === artworkId ? { ...a, like_count: (Number(a.like_count)||0) + (liked ? 1 : -1) } : a
+              ));
+            } else if (activeTab === 'saved') {
+              setSavedArtworks(prev => prev.map(a => 
+                a.artwork_id === artworkId ? { ...a, like_count: (Number(a.like_count)||0) + (liked ? 1 : -1) } : a
+              ));
+            }
+          }}
         />
       </main>
     </div>
