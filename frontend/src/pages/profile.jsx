@@ -4,10 +4,14 @@ import { Image, Heart, Bookmark, MessageCircle } from 'lucide-react';
 import NavigationBar from './navbar';
 import PostModal from '../components/PostModal';
 
+const API_BASE = 'http://localhost:5000/api';
+
 function Profile() {
   const navigate = useNavigate();
   const { username: urlUsername } = useParams();
+
   const [user, setUser] = useState(null);
+  const [profileUserId, setProfileUserId] = useState(null);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -21,118 +25,59 @@ function Profile() {
 
   const loggedInId = localStorage.getItem('userId');
   const loggedInUsername = localStorage.getItem('username');
-  // normalize username: prefer URL param, fallback to logged-in username; strip leading '@' if present
+
   const rawUsername = (urlUsername || loggedInUsername || '');
   const profileUsername = rawUsername.startsWith('@') ? rawUsername.slice(1) : rawUsername;
-  const [profileUserId, setProfileUserId] = useState(null);
-  // Determine if this is the logged-in user's profile. Prefer username match, but fall back to user_id match
+
   const isOwnProfile = Boolean(
     (loggedInUsername && profileUsername && loggedInUsername === profileUsername) ||
     (loggedInId && profileUserId && String(loggedInId) === String(profileUserId))
   );
-  console.debug('profile: isOwnProfile=', isOwnProfile, 'loggedInId=', loggedInId, 'profileUserId=', profileUserId, 'loggedInUsername=', loggedInUsername, 'profileUsername=', profileUsername);
 
-  // Fetch user by username (URL) and resolve its user_id for subsequent calls
+  // Fetch user by username
   useEffect(() => {
     if (!profileUsername) return;
-    const fetchByUsername = async () => {
+
+    const fetchUser = async () => {
       try {
-        console.debug('profile: fetching user by username=', profileUsername);
-        const res = await fetch(`http://localhost:5000/api/users/by-username/${profileUsername}`);
+        console.log('Fetching user:', profileUsername);
+        const res = await fetch(`${API_BASE}/users/by-username/${encodeURIComponent(profileUsername)}`);
         if (res.ok) {
           const data = await res.json();
-          console.debug('profile: fetched user', data);
           setUser(data);
-          setProfileUserId(data.user_id);
-        } else if (res.status === 404) {
-          console.warn('profile: user not found for', profileUsername);
-          setUser(null);
-          setProfileUserId(null);
+          setProfileUserId(data.user_id || data.id);
+          console.log('User loaded:', data);
         } else {
-          console.error('profile: unexpected response', res.status);
           setUser(null);
           setProfileUserId(null);
         }
       } catch (err) {
-        console.error('Error fetching user by username', err);
+        console.error('Error fetching user:', err);
         setUser(null);
         setProfileUserId(null);
       }
     };
-    fetchByUsername();
+
+    fetchUser();
   }, [profileUsername]);
 
-  // When we have the profile user id, fetch followers/following and listen for follow events
+  // Fetch artworks for profile user
   useEffect(() => {
     if (!profileUserId) return;
 
-    const fetchFollowers = () => {
-      fetch(`http://localhost:5000/api/follows/followers/${profileUserId}`)
-        .then((res) => res.ok ? res.json() : [])
-        .then((rows) => setFollowersCount(Array.isArray(rows) ? rows.length : 0))
-        .catch(() => setFollowersCount(0));
-    };
-
-    const fetchFollowing = () => {
-      fetch(`http://localhost:5000/api/follows/following/${profileUserId}`)
-        .then((res) => res.ok ? res.json() : [])
-        .then((rows) => setFollowingCount(Array.isArray(rows) ? rows.length : 0))
-        .catch(() => setFollowingCount(0));
-    };
-
-    fetchFollowers();
-    fetchFollowing();
-
-    if (loggedInId && profileUserId && loggedInId !== profileUserId) {
-      fetch(`http://localhost:5000/api/follows/check/${loggedInId}/${profileUserId}`)
-        .then(res => res.ok ? res.json() : { isFollowing: false })
-        .then(data => setIsFollowing(!!data.isFollowing))
-        .catch(() => setIsFollowing(false));
-    } else {
-      setIsFollowing(false);
-    }
-
-    const handler = (e) => {
-      const detail = e && e.detail ? e.detail : {};
-      const { followerId, followingId, isFollowing: newState } = detail;
-      if (followingId && String(followingId) === String(profileUserId)) {
-        if (typeof newState === 'boolean') {
-          setFollowersCount(prev => newState ? prev + 1 : Math.max(0, prev - 1));
-        } else {
-          fetchFollowers();
-        }
-        if (String(followerId) === String(loggedInId)) {
-          setIsFollowing(!!newState);
-        }
-      }
-
-      if (String(followerId) === String(loggedInId) && String(profileUserId) === String(loggedInId)) {
-        if (typeof newState === 'boolean') {
-          setFollowingCount(prev => newState ? prev + 1 : Math.max(0, prev - 1));
-        } else {
-          fetchFollowing();
-        }
-      }
-    };
-
-    window.addEventListener('follow-status-changed', handler);
-    return () => window.removeEventListener('follow-status-changed', handler);
-  }, [profileUserId, loggedInId]);
-
-  // Fetch artworks for the profile user (visible on artworks tab)
-  useEffect(() => {
-    if (!profileUserId) return;
     const fetchArtworks = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/artwork/user/${profileUserId}`);
+        console.log('Fetching artworks for user:', profileUserId);
+        const res = await fetch(`${API_BASE}/artwork/user/${profileUserId}`);
         if (res.ok) {
           const data = await res.json();
           setArtworks(Array.isArray(data) ? data : []);
+          console.log('Artworks loaded:', data);
         } else {
           setArtworks([]);
         }
       } catch (err) {
-        console.error('Error fetching artworks', err);
+        console.error('Error fetching artworks:', err);
         setArtworks([]);
       }
     };
@@ -140,318 +85,225 @@ function Profile() {
     fetchArtworks();
   }, [profileUserId]);
 
-  // Fetch likes of the logged-in user so like button states are accurate
+  // Fetch followers/following
   useEffect(() => {
-    if (!loggedInId) return;
-    fetch(`http://localhost:5000/api/likes/user/${loggedInId}`)
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setLikedArtworks(new Set((data || []).map(a => a.artwork_id))))
-      .catch(() => {});
-  }, [loggedInId]);
-
-  useEffect(() => {
-    // When saved tab is active, fetch saved artworks for this profile (only for own profile)
-    if (!isOwnProfile) return;
-    if (activeTab !== 'saved') return;
     if (!profileUserId) return;
+
+    (async () => {
+      try {
+        const followersRes = await fetch(`${API_BASE}/follows/followers/${profileUserId}`);
+        const followersData = followersRes.ok ? await followersRes.json() : [];
+        setFollowersCount(Array.isArray(followersData) ? followersData.length : 0);
+
+        const followingRes = await fetch(`${API_BASE}/follows/following/${profileUserId}`);
+        const followingData = followingRes.ok ? await followingRes.json() : [];
+        setFollowingCount(Array.isArray(followingData) ? followingData.length : 0);
+
+        if (loggedInId && profileUserId && loggedInId !== profileUserId) {
+          const checkRes = await fetch(`${API_BASE}/follows/check/${loggedInId}/${profileUserId}`);
+          const checkData = checkRes.ok ? await checkRes.json() : { isFollowing: false };
+          setIsFollowing(!!checkData.isFollowing);
+        }
+      } catch (err) {
+        console.error('Error fetching followers:', err);
+      }
+    })();
+  }, [profileUserId, loggedInId]);
+
+  // Fetch saved artworks (only if own profile)
+  useEffect(() => {
+    if (!isOwnProfile || !profileUserId) {
+      setSavedArtworks([]);
+      return;
+    }
 
     const fetchSaved = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/saves/saved/${profileUserId}`);
+        console.log('Fetching saved artworks for user:', profileUserId);
+        const res = await fetch(`${API_BASE}/saves/saved/${profileUserId}`);
         if (res.ok) {
           const data = await res.json();
           setSavedArtworks(Array.isArray(data) ? data : []);
+          console.log('Saved artworks:', data);
         } else {
           setSavedArtworks([]);
         }
-
-        // also fetch likes for logged-in user to show liked state if viewing own profile
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-          const likesRes = await fetch(`http://localhost:5000/api/likes/user/${userId}`);
-          if (likesRes.ok) {
-            const likesData = await likesRes.json();
-            setLikedArtworks(new Set((likesData || []).map(a => a.artwork_id)));
-          }
-        }
       } catch (err) {
-        console.error('Error fetching saved artworks', err);
+        console.error('Error fetching saved artworks:', err);
+        setSavedArtworks([]);
       }
     };
 
     fetchSaved();
-  }, [activeTab, profileUserId]);
+  }, [isOwnProfile, profileUserId]);
 
-  // When likes tab is active for own profile, fetch artworks the user liked
+  // Fetch liked artworks (only if own profile)
   useEffect(() => {
-    if (!isOwnProfile) return;
-    if (activeTab !== 'likes') return;
-    if (!profileUserId) return;
+    if (!isOwnProfile || !profileUserId) {
+      setLikedList([]);
+      return;
+    }
 
     const fetchLiked = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/likes/user/${profileUserId}`);
+        console.log('Fetching liked artworks for user:', profileUserId);
+        const res = await fetch(`${API_BASE}/likes/user/${profileUserId}`);
         if (res.ok) {
           const data = await res.json();
-          setLikedList(Array.isArray(data) ? data : []);
-          // ensure likedArtworks Set reflects currently liked ids
-          setLikedArtworks(new Set((data || []).map(a => a.artwork_id)));
+          const liked = Array.isArray(data) ? data : [];
+          setLikedList(liked);
+          setLikedArtworks(new Set(liked.map(a => a.artwork_id)));
+          console.log('Liked artworks:', liked);
         } else {
           setLikedList([]);
         }
       } catch (err) {
-        console.error('Error fetching liked artworks', err);
+        console.error('Error fetching liked artworks:', err);
         setLikedList([]);
       }
     };
 
     fetchLiked();
-  }, [activeTab, profileUserId, isOwnProfile]);
+  }, [isOwnProfile, profileUserId]);
 
-  // Ensure that when viewing someone else's profile, tabs like 'likes' and 'saved' are not active
-  useEffect(() => {
-    if (!isOwnProfile && (activeTab === 'likes' || activeTab === 'saved')) {
-      setActiveTab('artworks');
+  // Like/save handlers
+  const handleLike = async (artworkId) => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      alert('Please login to like artworks');
+      navigate('/login');
+      return;
     }
-  }, [isOwnProfile, activeTab]);
+
+    try {
+      const isLiked = likedArtworks.has(artworkId);
+      const endpoint = isLiked ? '/likes/unlike' : '/likes/like';
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, artwork_id: artworkId })
+      });
+
+      if (res.ok) {
+        const next = new Set(likedArtworks);
+        if (isLiked) next.delete(artworkId);
+        else next.add(artworkId);
+        setLikedArtworks(next);
+      }
+    } catch (err) {
+      console.error('Error liking artwork:', err);
+    }
+  };
+
+  const handleSave = async (artworkId) => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      alert('Please login to save artworks');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const isSaved = savedArtworks.some(a => a.artwork_id === artworkId);
+      const endpoint = isSaved ? '/saves/unsave' : '/saves/save';
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, artwork_id: artworkId })
+      });
+
+      if (res.ok) {
+        if (isSaved) {
+          setSavedArtworks(prev => prev.filter(a => a.artwork_id !== artworkId));
+        } else {
+          const found = artworks.find(a => a.artwork_id === artworkId);
+          if (found) setSavedArtworks(prev => [found, ...prev]);
+        }
+      }
+    } catch (err) {
+      console.error('Error saving artwork:', err);
+    }
+  };
 
   const openPostModal = (artwork) => {
     setSelectedArtwork(artwork);
     setShowPostModal(true);
   };
 
-  const handleLike = async (artworkId) => {
-    const userId = localStorage.getItem('userId');
-    if (!userId) { alert('Please login to like artworks'); return; }
-
-    try {
-      const isLiked = likedArtworks.has(artworkId);
-      const endpoint = isLiked ? '/api/likes/unlike' : '/api/likes/like';
-      const res = await fetch(`http://localhost:5000${endpoint}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, artwork_id: artworkId })
-      });
-      if (res.ok) {
-        const next = new Set(likedArtworks);
-        if (isLiked) next.delete(artworkId); else next.add(artworkId);
-        setLikedArtworks(next);
-        // update local counts in artworks and savedArtworks
-        setArtworks(prev => prev.map(a => {
-          if (a.artwork_id === artworkId) {
-            const current = Number(a.like_count || 0);
-            return { ...a, like_count: isLiked ? Math.max(0, current - 1) : current + 1 };
-          }
-          return a;
-        }));
-        setSavedArtworks(prev => prev.map(a => {
-          if (a.artwork_id === artworkId) {
-            const current = Number(a.like_count || 0);
-            return { ...a, like_count: isLiked ? Math.max(0, current - 1) : current + 1 };
-          }
-          return a;
-        }));
-        // Update liked list: if we are viewing Likes tab, remove on unlike, add/update on like
-        setLikedList(prev => {
-          if (isLiked) {
-            // removed like -> remove from likes list
-            return prev.filter(a => a.artwork_id !== artworkId);
-          } else {
-            // added like -> try to find artwork in artworks or savedArtworks to insert
-            const found = artworks.find(a => a.artwork_id === artworkId) || savedArtworks.find(a => a.artwork_id === artworkId);
-            if (found) {
-              const current = Number(found.like_count || 0);
-              // ensure we add a copy with updated like_count
-              const entry = { ...found, like_count: current + 1 };
-              // avoid duplicates
-              const exists = prev.some(a => a.artwork_id === artworkId);
-              return exists ? prev.map(a => a.artwork_id === artworkId ? entry : a) : [entry, ...prev];
-            }
-            // if not found locally, keep existing list (could fetch single artwork if needed)
-            return prev;
-          }
-        });
-      }
-    } catch (err) { console.error(err); }
-  };
-
-  const handleSave = async (artworkId) => {
-    const userId = localStorage.getItem('userId');
-    if (!userId) { alert('Please login to save artworks'); return; }
-
-    try {
-      // When viewing saved list, saving/un-saving should update the list
-      const isSaved = savedArtworks.some(a => a.artwork_id === artworkId);
-      const endpoint = isSaved ? '/api/saves/unsave' : '/api/saves/save';
-      const res = await fetch(`http://localhost:5000${endpoint}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, artwork_id: artworkId })
-      });
-      if (res.ok) {
-        if (isSaved) {
-          setSavedArtworks(prev => prev.filter(a => a.artwork_id !== artworkId));
-        } else {
-          // optionally refetch single artwork details; for now optimistically remove nothing
-        }
-      }
-    } catch (err) { console.error(err); }
-  };
-
-  const handleEdit = () => {
-    // placeholder - navigate to edit profile if implemented
-    navigate('/edit-profile');
-  };
+  const handleEdit = () => navigate('/edit-profile');
 
   const handleFollowToggle = async () => {
-    const loggedInIdLocal = localStorage.getItem('userId');
-    const targetUserId = profileUserId || localStorage.getItem('userId');
-    if (!loggedInIdLocal) {
-      alert('Please login to follow users');
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
       navigate('/login');
       return;
     }
-    if (!targetUserId) { alert('User not found'); return; }
-    if (loggedInIdLocal === targetUserId) return; // don't follow yourself
+    if (!profileUserId || userId === profileUserId) return;
 
     try {
-      const endpoint = isFollowing ? '/api/follows/unfollow' : '/api/follows/follow';
-      const res = await fetch(`http://localhost:5000${endpoint}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ follower_id: loggedInIdLocal, following_id: targetUserId })
+      const endpoint = isFollowing ? '/follows/unfollow' : '/follows/follow';
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ follower_id: userId, following_id: profileUserId })
       });
-      if (res.ok) {
-        const newState = !isFollowing;
-        setIsFollowing(newState);
-        setFollowersCount(prev => newState ? prev + 1 : Math.max(0, prev - 1));
 
-        // If we just followed, fetch that user's artworks and include them in the event so Home can optimistically insert them
-        if (newState) {
-          try {
-            const artsRes = await fetch(`http://localhost:5000/api/artwork/user/${targetUserId}`);
-            let artworks = [];
-            if (artsRes.ok) {
-              const data = await artsRes.json();
-              artworks = Array.isArray(data) ? data : [];
-            }
-            window.dispatchEvent(new CustomEvent('follow-status-changed', { detail: { followerId: loggedInIdLocal, followingId: targetUserId, isFollowing: newState, artworks } }));
-          } catch (e) {
-            // dispatch without artworks on error
-            window.dispatchEvent(new CustomEvent('follow-status-changed', { detail: { followerId: loggedInIdLocal, followingId: targetUserId, isFollowing: newState } }));
-          }
-        } else {
-          // unfollow: notify Home to remove that user's posts
-          window.dispatchEvent(new CustomEvent('follow-status-changed', { detail: { followerId: loggedInIdLocal, followingId: targetUserId, isFollowing: newState } }));
-        }
+      if (res.ok) {
+        setIsFollowing(!isFollowing);
+        setFollowersCount(prev => isFollowing ? Math.max(0, prev - 1) : prev + 1);
       }
     } catch (err) {
-      console.error('Follow toggle error', err);
+      console.error('Error following user:', err);
     }
   };
 
-  const avatar = user && user.profile_picture ? user.profile_picture : null;
+  const avatar = user?.profile_picture || null;
 
   return (
     <div className="cream-background">
       <NavigationBar />
-
       <main style={{ padding: '2rem 0' }}>
         <section style={{ textAlign: 'center', paddingTop: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
             {avatar ? (
-              <img
-                src={avatar}
-                alt="profile"
-                style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 0 rgba(0,0,0,0.1)' }}
-              />
+              <img src={avatar} alt="profile" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover' }} />
             ) : (
-              <div style={{ width: 120, height: 120, borderRadius: '50%', background: '#fff', border: '2px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
+              <div style={{ width: 120, height: 120, borderRadius: '50%', background: '#fff', border: '2px solid #eee' }} />
             )}
           </div>
 
-          <h3 style={{ marginTop: '0.75rem' }}>
-            {user ? `@${user.username}` : (profileUsername && !profileUserId ? 'User not found' : '@user')}
-          </h3>
-          <p style={{ color: '#666' }}>{user && user.bio ? user.bio : (profileUsername && !profileUserId ? 'This user does not exist.' : '')}</p>
+          <h3>{user ? `@${user.username}` : 'User not found'}</h3>
+          <p style={{ color: '#666' }}>{user?.bio || ''}</p>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '0.75rem' }}>
-            <div>{/* artworks count would require another endpoint - omitted */}0 artworks</div>
-            <div>{followersCount ?? 0} followers</div>
-            <div>{followingCount ?? 0} following</div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '1rem' }}>
+            <div><strong>{artworks.length}</strong> artworks</div>
+            <div><strong>{followersCount}</strong> followers</div>
+            <div><strong>{followingCount}</strong> following</div>
           </div>
 
           <div style={{ marginTop: '1rem' }}>
-            {!isOwnProfile ? (
-              <button className="blue-btn" style={{ width: '120px' }} onClick={handleFollowToggle}>{isFollowing ? 'Following' : 'Follow'}</button>
+            {isOwnProfile ? (
+              <button className="blue-btn" onClick={handleEdit} style={{ padding: '0.4rem 1rem', fontSize: '0.80rem', width: 'auto', maxWidth: '120px', margin: '0 auto', display: 'block' }}>Edit Profile</button>
             ) : (
-              <button className="blue-btn" style={{ width: '120px' }} onClick={handleEdit}>Edit Profile</button>
+              <button className="blue-btn" onClick={handleFollowToggle} style={{ padding: '0.4rem 1rem', fontSize: '0.80rem', width: 'auto', maxWidth: '120px', margin: '0 auto', display: 'block' }}>{isFollowing ? 'Following' : 'Follow'}</button>
             )}
           </div>
 
-          {/* Tabs Section */}
+          {/* Tabs */}
           <div style={{ marginTop: '2rem', borderBottom: '1px solid #e0e0e0' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem' }}>
-              <button
-                onClick={() => setActiveTab('artworks')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '0.75rem 0',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  fontWeight: activeTab === 'artworks' ? '600' : '400',
-                  color: activeTab === 'artworks' ? '#E89B96' : '#555',
-                  borderBottom: activeTab === 'artworks' ? '3px solid #E89B96' : 'none',
-                  marginBottom: '-1px',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                <Image size={18} /> Artworks
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem' }}>
+              <button onClick={() => setActiveTab('artworks')} style={{ background: 'none', border: 'none', padding: '0.75rem 0', cursor: 'pointer', fontWeight: activeTab === 'artworks' ? 600 : 400, color: activeTab === 'artworks' ? '#E89B96' : '#555', borderBottom: activeTab === 'artworks' ? '3px solid #E89B96' : 'none', marginBottom: '-1px' }}>
+                <Image size={18} style={{ marginRight: '0.5rem', display: 'inline' }} /> Artworks
               </button>
               {isOwnProfile && (
-                <button
-                  onClick={() => setActiveTab('likes')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '0.75rem 0',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  fontWeight: activeTab === 'likes' ? '600' : '400',
-                  color: activeTab === 'likes' ? '#E89B96' : '#555',
-                  borderBottom: activeTab === 'likes' ? '3px solid #E89B96' : 'none',
-                  marginBottom: '-1px',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-                >
-                  <Heart size={18} /> Likes
-                </button>
-              )}
-              {isOwnProfile && (
-                <button
-                  onClick={() => setActiveTab('saved')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '0.75rem 0',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  fontWeight: activeTab === 'saved' ? '600' : '400',
-                  color: activeTab === 'saved' ? '#E89B96' : '#555',
-                  borderBottom: activeTab === 'saved' ? '3px solid #E89B96' : 'none',
-                  marginBottom: '-1px',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-                >
-                  <Bookmark size={18} /> Saved
-                </button>
+                <>
+                  <button onClick={() => setActiveTab('likes')} style={{ background: 'none', border: 'none', padding: '0.75rem 0', cursor: 'pointer', fontWeight: activeTab === 'likes' ? 600 : 400, color: activeTab === 'likes' ? '#E89B96' : '#555', borderBottom: activeTab === 'likes' ? '3px solid #E89B96' : 'none', marginBottom: '-1px' }}>
+                    <Heart size={18} style={{ marginRight: '0.5rem', display: 'inline' }} /> Likes ({likedList.length})
+                  </button>
+                  <button onClick={() => setActiveTab('saved')} style={{ background: 'none', border: 'none', padding: '0.75rem 0', cursor: 'pointer', fontWeight: activeTab === 'saved' ? 600 : 400, color: activeTab === 'saved' ? '#E89B96' : '#555', borderBottom: activeTab === 'saved' ? '3px solid #E89B96' : 'none', marginBottom: '-1px' }}>
+                    <Bookmark size={18} style={{ marginRight: '0.5rem', display: 'inline' }} /> Saved ({savedArtworks.length})
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -459,172 +311,84 @@ function Profile() {
           {/* Tab Content */}
           <div style={{ marginTop: '2rem', minHeight: '300px' }}>
             {activeTab === 'artworks' && (
-              <div>
-                {artworks.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#999' }}>
-                    <p>No artworks yet</p>
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
-                    {artworks.map((artwork) => (
-                      <div key={artwork.artwork_id} className="artwork-card" style={{ cursor: 'pointer' }} onClick={() => openPostModal(artwork)}>
-                        <div className="artwork-header">
-                          <img src={artwork.profile_picture || 'https://via.placeholder.com/32?text=User'} alt={artwork.username} className="artwork-user-avatar" onError={(e) => { e.target.src = 'https://via.placeholder.com/32?text=User'; }} onClick={(e) => { e.stopPropagation(); /* stay on profile */ }} style={{ cursor: 'default' }} />
-                          <span className="artwork-username">@{artwork.username}</span>
-                        </div>
-
-                        <div className="artwork-image-container">
-                          <img src={artwork.image_url} alt={artwork.title} className="artwork-image" onError={(e) => { e.target.src = 'https://via.placeholder.com/300x300?text=Image+Not+Found'; }} />
-                          <div className="artwork-overlay">
-                            <button className={`artwork-action-btn ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }} aria-label="Like" style={{ marginRight: '0.2rem' }}>
-                              <Heart size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
-                            </button>
-                            <button className="artwork-action-btn" style={{ marginRight: '0.2rem' }} onClick={(e) => { e.stopPropagation(); openPostModal(artwork); }} aria-label="Comments">
-                              <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
-                            </button>
-                            <button className={`artwork-action-btn ${savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'saved' : ''}`} onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }} aria-label="Save">
-                              <Bookmark size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="artwork-info">
-                          <h3 className="artwork-title">{artwork.title}</h3>
-                          <div className="artwork-tags"><span className="tag">Digital Art</span></div>
-                          {artwork.caption && <p className="artwork-caption single-line-caption">{artwork.caption}</p>}
-                          <div className="artwork-stats">
-                            <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }}>
-                              <Heart size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} /> <span className="count">{artwork.like_count ?? 0}</span>
-                            </div>
-                            <div className="stat">
-                              <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="card-icon" /> <span className="count">{artwork.comment_count ?? 0}</span>
-                            </div>
-                            <div className="spacer" />
-                            <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }}>
-                              <Bookmark size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'saved' : ''}`} />
-                            </div>
-                          </div>
+              artworks.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#999' }}>No artworks yet</div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                  {artworks.map(art => (
+                    <div key={art.artwork_id} className="artwork-card" onClick={() => openPostModal(art)} style={{ cursor: 'pointer' }}>
+                      <div className="artwork-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem' }}>
+                        <img src={art.profile_picture || 'https://via.placeholder.com/32'} alt={art.username} style={{ width: 32, height: 32, borderRadius: '50%' }} />
+                        <span>@{art.username}</span>
+                      </div>
+                      <img src={art.image_url} alt={art.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                      <div style={{ padding: '1rem' }}>
+                        <h4>{art.title}</h4>
+                        <p>{art.caption}</p>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                          <span onClick={(e) => { e.stopPropagation(); handleLike(art.artwork_id); }} style={{ cursor: 'pointer' }}>❤️ {art.like_count || 0}</span>
+                          <span>💬 {art.comment_count || 0}</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
+
             {isOwnProfile && activeTab === 'likes' && (
-              <div>
-                {likedList.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#999' }}>
-                    <p>No likes yet</p>
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
-                    {likedList.map((artwork) => (
-                      <div key={artwork.artwork_id} className="artwork-card" style={{ cursor: 'pointer' }} onClick={() => openPostModal(artwork)}>
-                        <div className="artwork-header">
-                          <img src={artwork.profile_picture || 'https://via.placeholder.com/32?text=User'} alt={artwork.username} className="artwork-user-avatar" onError={(e) => { e.target.src = 'https://via.placeholder.com/32?text=User'; }} onClick={(e) => { e.stopPropagation(); }} style={{ cursor: 'default' }} />
-                          <span className="artwork-username">@{artwork.username}</span>
-                        </div>
-
-                        <div className="artwork-image-container">
-                          <img src={artwork.image_url} alt={artwork.title} className="artwork-image" onError={(e) => { e.target.src = 'https://via.placeholder.com/300x300?text=Image+Not+Found'; }} />
-                          <div className="artwork-overlay">
-                            <button className={`artwork-action-btn ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }} aria-label="Like" style={{ marginRight: '0.2rem' }}>
-                              <Heart size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
-                            </button>
-                            <button className="artwork-action-btn" style={{ marginRight: '0.2rem' }} onClick={(e) => { e.stopPropagation(); openPostModal(artwork); }} aria-label="Comments">
-                              <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
-                            </button>
-                            <button className={`artwork-action-btn ${savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'saved' : ''}`} onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }} aria-label="Save">
-                              <Bookmark size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="artwork-info">
-                          <h3 className="artwork-title">{artwork.title}</h3>
-                          <div className="artwork-tags"><span className="tag">Digital Art</span></div>
-                          {artwork.caption && <p className="artwork-caption single-line-caption">{artwork.caption}</p>}
-                          <div className="artwork-stats">
-                            <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }}>
-                              <Heart size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} /> <span className="count">{artwork.like_count ?? 0}</span>
-                            </div>
-                            <div className="stat">
-                              <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="card-icon" /> <span className="count">{artwork.comment_count ?? 0}</span>
-                            </div>
-                            <div className="spacer" />
-                            <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }}>
-                              <Bookmark size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'saved' : ''}`} />
-                            </div>
-                          </div>
-                        </div>
+              likedList.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#999' }}>No likes yet</div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                  {likedList.map(art => (
+                    <div key={art.artwork_id} className="artwork-card" onClick={() => openPostModal(art)} style={{ cursor: 'pointer' }}>
+                      <div className="artwork-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem' }}>
+                        <img src={art.profile_picture || 'https://via.placeholder.com/32'} alt={art.username} style={{ width: 32, height: 32, borderRadius: '50%' }} />
+                        <span>@{art.username}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      <img src={art.image_url} alt={art.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                      <div style={{ padding: '1rem' }}>
+                        <h4>{art.title}</h4>
+                        <p>{art.caption}</p>
+                        <span>❤️ {art.like_count}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
+
             {isOwnProfile && activeTab === 'saved' && (
-              <div>
-                {savedArtworks.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#999' }}>
-                    <p>No saved artworks yet</p>
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-                    {savedArtworks.map((artwork) => (
-                      <div key={artwork.artwork_id} className="artwork-card" style={{ cursor: 'pointer' }} onClick={() => openPostModal(artwork)}>
-                        <div className="artwork-header">
-                          <img src={artwork.profile_picture || 'https://via.placeholder.com/32?text=User'} alt={artwork.username} className="artwork-user-avatar" />
-                          <span className="artwork-username">@{artwork.username}</span>
-                        </div>
-
-                        <div className="artwork-image-container">
-                          <img src={artwork.image_url} alt={artwork.title} className="artwork-image" onError={(e) => { e.target.src = 'https://via.placeholder.com/300x300?text=Image+Not+Found'; }} />
-                          <div className="artwork-overlay">
-                            <button className={`artwork-action-btn ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }} aria-label="Like" style={{ marginRight: '0.2rem' }}>
-                              <Heart size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
-                            </button>
-                            <button className="artwork-action-btn" style={{ marginRight: '0.2rem' }} onClick={(e) => { e.stopPropagation(); openPostModal(artwork); }} aria-label="Comments">
-                              <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
-                            </button>
-                            <button className={`artwork-action-btn ${savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'saved' : ''}`} onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }} aria-label="Save">
-                              <Bookmark size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="artwork-info">
-                          <h3 className="artwork-title">{artwork.title}</h3>
-                          <div className="artwork-tags"><span className="tag">Digital Art</span></div>
-                          {artwork.caption && <p className="artwork-caption single-line-caption">{artwork.caption}</p>}
-                        </div>
+              savedArtworks.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#999' }}>No saved artworks yet</div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                  {savedArtworks.map(art => (
+                    <div key={art.artwork_id} className="artwork-card" onClick={() => openPostModal(art)} style={{ cursor: 'pointer' }}>
+                      <div className="artwork-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem' }}>
+                        <img src={art.profile_picture || 'https://via.placeholder.com/32'} alt={art.username} style={{ width: 32, height: 32, borderRadius: '50%' }} />
+                        <span>@{art.username}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      <img src={art.image_url} alt={art.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                      <div style={{ padding: '1rem' }}>
+                        <h4>{art.title}</h4>
+                        <p>{art.caption}</p>
+                        <span>❤️ {art.like_count}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
           </div>
         </section>
-      <PostModal
-        show={showPostModal}
-        onHide={() => { setShowPostModal(false); }}
-        artwork={selectedArtwork}
-        onCommentAdded={(artworkId) => {
-          setArtworks(prev => prev.map(a => a.artwork_id === artworkId ? { ...a, comment_count: (Number(a.comment_count)||0) + 1 } : a));
-          setSavedArtworks(prev => prev.map(a => a.artwork_id === artworkId ? { ...a, comment_count: (Number(a.comment_count)||0) + 1 } : a));
-        }}
-        onLikeToggled={(artworkId, liked) => {
-          setLikedArtworks(prev => {
-            const next = new Set(prev);
-            if (liked) next.add(artworkId); else next.delete(artworkId);
-            return next;
-          });
-          setArtworks(prev => prev.map(a => a.artwork_id === artworkId ? { ...a, like_count: (Number(a.like_count)||0) + (liked ? 1 : -1) } : a));
-          setSavedArtworks(prev => prev.map(a => a.artwork_id === artworkId ? { ...a, like_count: (Number(a.like_count)||0) + (liked ? 1 : -1) } : a));
-        }}
-      />
+
+        <PostModal
+          show={showPostModal}
+          onHide={() => setShowPostModal(false)}
+          artwork={selectedArtwork}
+        />
       </main>
     </div>
   );
