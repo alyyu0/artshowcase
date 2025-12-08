@@ -1,7 +1,7 @@
 import { Home, Image, Trophy, User, LogOut, Upload } from 'lucide-react';
 import { Nav, Navbar, Container, Dropdown } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import UploadModal from './upload';
 import '../App.css';
 
@@ -12,7 +12,28 @@ function NavigationBar() {
   const isLoggedIn = localStorage.getItem('loggedIn');
   const username = localStorage.getItem('username');
   const userId = localStorage.getItem('userId');
-  const profileImage = localStorage.getItem('profileImage') || 'https://via.placeholder.com/40';
+  const placeholderImg = 'https://via.placeholder.com/40';
+  const [profileImage, setProfileImage] = useState(localStorage.getItem('profileImage') || placeholderImg);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('profileImage');
+    if (stored) setProfileImage(stored);
+    const loadProfileImage = async () => {
+      if (!userId) return;
+      try {
+        const res = await fetch(`http://localhost:5000/api/users/${userId}`);
+        if (res.ok) {
+          const data = await res.json();
+          const img = data?.profile_picture || placeholderImg;
+          setProfileImage(img);
+          localStorage.setItem('profileImage', img);
+        }
+      } catch (err) {
+        console.error('Failed to load profile image', err);
+      }
+    };
+    loadProfileImage();
+  }, [userId]);
 
   const handleLogout = () => {
     localStorage.removeItem('loggedIn');
@@ -116,6 +137,7 @@ function NavigationBar() {
                     <img
                       src={profileImage}
                       alt={username}
+                      onError={(e) => { e.target.src = placeholderImg; setProfileImage(placeholderImg); }}
                       style={{
                         width: '40px',
                         height: '40px',

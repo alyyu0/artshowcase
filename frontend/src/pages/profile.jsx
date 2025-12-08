@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Image, Heart, Bookmark, MessageCircle } from 'lucide-react';
+import { Modal, Form, Button, Spinner } from 'react-bootstrap';
 import NavigationBar from './navbar';
 import PostModal from '../components/PostModal';
 
@@ -22,6 +23,10 @@ function Profile() {
   const [artworks, setArtworks] = useState([]);
   const [selectedArtwork, setSelectedArtwork] = useState(null);
   const [showPostModal, setShowPostModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editBio, setEditBio] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const loggedInId = localStorage.getItem('userId');
   const loggedInUsername = localStorage.getItem('username');
@@ -268,7 +273,35 @@ function Profile() {
     setShowPostModal(true);
   };
 
-  const handleEdit = () => navigate('/edit-profile');
+  const handleEdit = () => {
+    if (!isOwnProfile || !user) return;
+    setEditBio(user.bio || '');
+    setEditAvatar(user.profile_picture || '');
+    setShowEditModal(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!profileUserId) return;
+    try {
+      setSavingEdit(true);
+      const res = await fetch(`${API_BASE}/users/${profileUserId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bio: editBio,
+          profile_picture: editAvatar
+        })
+      });
+      if (res.ok) {
+        setUser(prev => ({ ...prev, bio: editBio, profile_picture: editAvatar }));
+        setShowEditModal(false);
+      }
+    } catch (err) {
+      console.error('Error updating profile:', err);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const handleFollowToggle = async () => {
     const userId = localStorage.getItem('userId');
@@ -639,6 +672,43 @@ function Profile() {
             }
           }}
         />
+
+        <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Edit Profile</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>Profile Image URL</Form.Label>
+                <Form.Control
+                  type="url"
+                  value={editAvatar}
+                  onChange={(e) => setEditAvatar(e.target.value)}
+                  placeholder="https://example.com/avatar.jpg"
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Bio</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  placeholder="Tell the community about you"
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleSaveProfile} disabled={savingEdit}>
+              {savingEdit ? <Spinner size="sm" animation="border" /> : 'Save'}
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </main>
     </div>
   );
