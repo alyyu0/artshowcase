@@ -1,3 +1,82 @@
+.post-modal-inner {
+  display: flex;
+  gap: 0;
+}
+.post-modal {
+  font-family: 'JosefinSans', sans-serif;
+}
+.post-modal-left {
+  flex: 1 1 60%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.post-modal-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+.post-modal-right {
+  flex: 1 1 40%;
+  padding: 1.25rem 1.5rem;
+  background: #FCFBE5;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make modal corners more rounded */
+.post-modal-dialog .modal-content {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.post-modal-right { position: relative; }
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: #444;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+}
+.modal-close-btn:hover { background: rgba(0,0,0,0.04); }
+.post-modal-header { display:flex; align-items:center; gap:0.6rem; }
+.comments-list { margin-top: 0.6rem; max-height: 34vh; overflow-y: auto; }
+.comment-row { display:flex; gap:0.6rem; margin-bottom:0.6rem; }
+.comment-avatar { width:28px; height:28px; border-radius:50%; object-fit:cover; }
+.comment-meta { font-size:0.85rem; color:#333; }
+.comment-text { font-size:0.95rem; color:#444; }
+.post-modal-footer { margin-top:auto; }
+.stats-row { display:flex; align-items:center; gap:1rem; padding-top:0.6rem; border-top:1px solid rgba(0,0,0,0.04); }
+.comment-input-row { display:flex; gap:0.5rem; margin-top:0.6rem; }
+
+/* Comment button color for post modal */
+.post-modal-right .comment-input-row .comment-btn {
+  background-color: #a9d8c2 !important;
+  border-color: #a9d8c2 !important;
+  color: #2e3140 !important;
+}
+.post-modal-right .comment-input-row .comment-btn:hover,
+.post-modal-right .comment-input-row .comment-btn:focus {
+  background-color: #95c9ae !important;
+  border-color: #95c9ae !important;
+  color: #2e3140 !important;
+}
+/* Single line caption for artwork card */
+.single-line-caption {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0 0.12rem 0;
+  color: #444;
+  font-size: 0.97rem;
+}
 :root {
   font-family: 'JosefinSans', sans-serif;
   font-size: 20px;
@@ -179,7 +258,7 @@ body {
   align-items: center;
   gap: 0.75rem;
   background: #FFFFFF;
-  border-radius: 12px; /* larger radius like the screenshot */
+  border-radius: 8px; /* slightly sharper corners */
   padding: 0.5rem 1rem; /* reduce vertical padding to make the input shorter */
   box-shadow: 0 2px 0 rgba(0,0,0,0.03);
   border: 2px solid rgba(138,146,203,0.3); /* subtle purple border */
@@ -319,11 +398,53 @@ body {
 
 /* Make the gallery search visible even when .search-input wrapper isn't present
    (some files have the input directly inside .gallery-search). */
+
+/* Liked / Saved button states */
+.artwork-action-btn.liked,
+.like-btn.liked {
+  background: rgba(241,180,178,0.10) !important; /* subtle pink background */
+  border-color: rgba(241,180,178,0.25) !important;
+  color: #F1B4B2 !important; /* icon color */
+}
+.artwork-action-btn.saved {
+  background: rgba(156,171,214,0.10) !important; /* subtle blue background */
+  border-color: rgba(156,171,214,0.25) !important;
+  color: #9CABD6 !important; /* icon color */
+}
+.artwork-action-btn.liked:hover,
+.like-btn.liked:hover,
+.artwork-action-btn.saved:hover {
+  transform: scale(1.05);
+  filter: brightness(0.98);
+}
+
+/* Ensure modal like/save buttons adopt same visual states */
+.post-modal-right .artwork-action-btn.liked,
+.post-modal-right .artwork-action-btn.saved,
+.post-modal-right .like-btn.liked {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* Card / stat icons colored when active */
+.card-icon.liked,
+.card-icon.liked * {
+  color: #F1B4B2 !important;
+  stroke: #F1B4B2 !important;
+}
+.card-icon.saved,
+.card-icon.saved * {
+  color: #9CABD6 !important;
+  stroke: #9CABD6 !important;
+}
+
+/* Make the stat icons look clickable */
+.artwork-stats .stat { cursor: default; }
+.artwork-stats .stat.clickable { cursor: pointer; }
 .gallery-search > .form-control {
   display: block;
   width: 100%;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 0.45rem 1rem; /* reduced vertical padding for a shorter field */
   border: 2px solid rgba(138,146,203,0.3);
   box-shadow: 0 2px 0 rgba(0,0,0,0.03);
@@ -340,4 +461,467 @@ body {
 .gallery-search .search-input:active,
 .gallery-search > .form-control:active {
   transform: translateY(0.5px);
+}
+
+.trophy-circle {
+  width: 80px;
+  height: 80px;
+  background-color: #a9d8c2;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 0.3rem auto;
+}
+
+/* Gallery artwork styles moved from gallery.css */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+/* Artwork Card */
+.artwork-card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  max-width: 420px;
+  min-width: 340px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.artwork-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.artwork-image-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.artwork-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artwork-overlay { position:absolute; top:8px; right:8px; display:flex; gap:6px; }
+
+.artwork-action-btn {
+  background: rgba(255,255,255,0.04);
+  border: none;
+  padding: 6px 8px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+}
+.artwork-action-btn:hover { background: rgba(255,255,255,0.12); }
+
+.artwork-action-btn.liked svg, .artwork-action-btn.liked { color: #f1b4b2; }
+.artwork-action-btn.saved svg, .artwork-action-btn.saved { color: #9cabd6; }
+
+
+/* ===== Gallery Card Header / Layout (labeled) ===== */
+/* Header bar sits above the image and uses rounded top corners */
+.artwork-card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(30,30,40,0.06);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.artwork-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 14px 6px 14px;
+  background: #fff;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+}
+
+.artwork-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f0f0f0;
+}
+
+.artwork-username {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* ===== Image block (labeled) ===== */
+.artwork-image-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%; /* square preview like screenshot */
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+/* Slightly taller hover lift */
+.artwork-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 36px rgba(30,30,40,0.08);
+}
+
+/* ===== Info footer (labeled) ===== */
+.artwork-info {
+  padding: 10px 14px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.artwork-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #222;
+  margin: 0 0 0.12rem 0;
+}
+
+.artwork-caption {
+  font-size: 0.86rem;
+  color: #666;
+  margin: 0;
+}
+
+.artwork-tags {
+  margin: 0 0 0.12rem 0;
+  display: flex;
+  align-items: center;
+}
+
+.artwork-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 0.95rem;
+  color: #444;
+  margin-top: 0.08rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+.stat { color: #555; }
+
+/* Bookmark icon aligns right in footer - using a flex spacer */
+.artwork-stats .spacer { flex: 1; }
+
+@media (max-width: 1024px) {
+  .gallery-grid { gap: 1.3rem; }
+}
+
+
+.artwork-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.artwork-card:hover .artwork-overlay {
+  /* disable hover overlay globally */
+  opacity: 0 !important;
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* Also hide overlay inside modal (redundant but explicit) */
+.post-modal .artwork-overlay,
+.post-modal-left .artwork-overlay {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.artwork-action-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.artwork-action-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: #fff;
+  transform: scale(1.1);
+}
+
+/* Artwork Info */
+.artwork-info {
+  padding: 1.5rem;
+}
+
+.artwork-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.artwork-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f0f0f0;
+}
+
+.artwork-username {
+  font-size: 0.9rem;
+  font-weight: 500; /* reduced weight */
+  color: #333;
+}
+
+.artwork-title {
+  font-size: 1.1rem;
+  font-weight: 500; /* less bold per request */
+  color: #333;
+  margin: 0 0 0.12rem 0;
+}
+
+.artwork-caption {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0.5rem 0;
+  line-height: 1.4;
+}
+
+.artwork-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.12rem 0;
+}
+
+.tag {
+  display: inline-block;
+  background: #f1b4b2;
+  color: #2e3140;
+  padding: 0.35rem 0.75rem;
+  border-radius: 18px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.artwork-stats {
+  display: flex;
+  gap: 0.9rem;
+  margin-top: 0.08rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.stat span {
+  font-weight: 600;
+}
+
+/* Ensure action icons in the footer are always visible even when inactive */
+.artwork-stats .stat svg {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  stroke: #555; /* outline color for icons */
+  color: #555;
+  fill: none; /* keep outline appearance when not active */
+  opacity: 1;
+  stroke-width: 2;
+}
+
+/* card stat icon specific adjustments */
+.artwork-stats .stat .card-icon {
+  width: 24px;
+  height: 24px;
+  color: #555;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* Counts next to icons should be readable */
+.artwork-stats .stat .count {
+  color: #444;
+  font-weight: 600;
+}
+
+/* When a stat is marked active (liked/saved) we show the fill color */
+.artwork-stats .stat.liked svg {
+  stroke: none;
+  fill: #f1b4b2; /* heart fill color when liked */
+  color: #f1b4b2;
+}
+.artwork-stats .stat.saved svg {
+  stroke: none;
+  fill: #9cabd6; /* bookmark fill color when saved */
+  color: #9cabd6;
+}
+
+/* Post modal: ensure stats/icons show outlined appearance when inactive */
+.post-modal .stats-row, .post-modal .stats-row .stat, .post-modal .stats-row .artwork-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.post-modal .stats-row svg {
+  width: 24px;
+  height: 24px;
+  stroke: #555; /* show outline stroke */
+  fill: none; /* outlined by default */
+  color: #555;
+  opacity: 1;
+  stroke-width: 2; /* slightly thicker stroke for visual parity */
+}
+
+.post-modal .stats-row .artwork-action-btn {
+  background: transparent;
+  border: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: #444;
+}
+
+.post-modal .stats-row .artwork-action-btn:hover { background: rgba(0,0,0,0.03); }
+
+/* Counts in modal */
+.post-modal .stats-row .artwork-action-btn span,
+.post-modal .stats-row .stat span {
+  color: #444;
+  font-weight: 600;
+}
+
+/* Active fills in modal */
+.post-modal .stats-row .artwork-action-btn.liked svg,
+.post-modal .stats-row .artwork-action-btn.liked svg * {
+  stroke: none !important;
+  fill: #f1b4b2 !important;
+  color: #f1b4b2 !important;
+}
+.post-modal .stats-row .artwork-action-btn.saved svg,
+.post-modal .stats-row .artwork-action-btn.saved svg * {
+  stroke: none !important;
+  fill: #9cabd6 !important;
+  color: #9cabd6 !important;
+}
+
+/* Modal icon outline and hover color (uses currentColor/stroke from lucide icons) */
+.post-modal .artwork-action-btn .modal-icon {
+  width: 32px;
+  height: 32px;
+  color: #555; /* controls stroke color for lucide icons */
+  fill: none; /* keep outlined by default */
+  transition: color 0.12s ease, fill 0.12s ease;
+  stroke-width: 2;
+}
+
+/* Overlay icons inside artwork image */
+.artwork-action-btn .overlay-icon {
+  width: 24px;
+  height: 24px;
+  color: #fff; /* default overlay icon stroke color */
+  fill: none;
+  stroke-width: 2;
+}
+
+.artwork-action-btn.liked .overlay-icon {
+  color: #f1b4b2;
+  fill: #f1b4b2;
+}
+
+.artwork-action-btn.saved .overlay-icon {
+  color: #9cabd6;
+  fill: #9cabd6;
+}
+
+.post-modal .artwork-action-btn:hover .modal-icon {
+  color: #f1b4b2; /* pink on hover */
+}
+
+.post-modal .artwork-action-btn.liked .modal-icon {
+  color: #f1b4b2;
+  fill: #f1b4b2; /* filled heart when liked */
+}
+
+.post-modal .artwork-action-btn.saved .modal-icon {
+  color: #9cabd6;
+  fill: #9cabd6; /* filled bookmark when saved */
+}
+
+@media (max-width: 768px) {
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .artwork-info {
+    padding: 1rem;
+  }
+}
+
+/* Modal-specific overrides to make the like (heart) button larger and more visible */
+.post-modal .stats-row .artwork-action-btn.like-btn {
+  padding: 12px 16px;
+  border-radius: 14px;
+}
+.post-modal .stats-row .artwork-action-btn.like-btn .modal-icon {
+  width: 44px !important;
+  height: 44px !important;
+  stroke-width: 2.5 !important;
+}
+.post-modal .stats-row .artwork-action-btn.like-btn span {
+  font-size: 1.1rem;
+  margin-left: 8px;
+}
+
+/* Ensure other modal icons remain slightly smaller for visual hierarchy */
+.post-modal .stats-row .artwork-action-btn:not(.like-btn) .modal-icon {
+  width: 32px !important;
+  height: 32px !important;
 }

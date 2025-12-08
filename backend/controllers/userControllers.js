@@ -1,22 +1,39 @@
 const db = require('../config/db');
 
 // Get user profile by id
-exports.getUserById = (req, res) => {
+exports.getUserById = async (req, res) => {
   const { user_id } = req.params;
   if (!user_id) return res.status(400).json({ error: 'Missing user id' });
 
-  const sql = 'SELECT user_id, username, bio, profile_picture, date_joined FROM users WHERE user_id = ? LIMIT 1';
-  db.query(sql, [user_id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!rows || rows.length === 0) return res.status(404).json({ error: 'User not found' });
+  try {
+    const sql = 'SELECT user_id, username, bio, profile_picture FROM users WHERE user_id = $1 LIMIT 1';
+    const result = await db.query(sql, [user_id]);
     
-    const user = rows[0];
-    if (user.profile_picture) {
-      user.profile_picture = `http://localhost:5000${user.profile_picture}`;
-    }
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     
-    res.json(user);
-  });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get user profile by username
+exports.getUserByUsername = async (req, res) => {
+  const { username } = req.params;
+  if (!username) return res.status(400).json({ error: 'Missing username' });
+
+  try {
+    const sql = 'SELECT user_id, username, bio, profile_picture FROM users WHERE username = $1 LIMIT 1';
+    const result = await db.query(sql, [username]);
+
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 module.exports = exports;

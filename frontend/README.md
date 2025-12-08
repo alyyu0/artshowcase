@@ -4,7 +4,7 @@
 - npm install react-bootstrap-icons
 
 
-**TO CHECK PROGRESS IN LOCALHOST**
+**TO RUN FRONTEND**
 - [IN TERMINAL]
 - open terminal
 - cd frontend

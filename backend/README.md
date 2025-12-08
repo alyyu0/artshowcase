@@ -4,6 +4,10 @@ ADD YOUR OWN .ENV FILE BASED ON YOUR MYSQL WORKBENCH, USE EXAMPLE.env AS BASIS
 - npm install express mysql2 dotenv bcrypt
 - npm i -D nodemon
 - npm install cors
+- npm install cloudinary next-cloudinary
+- npm install multer
+- npm install pg
+- npm install @supabase/supabase-js
 
 
 **TO CHECK PROGRESS IN LOCALHOST**
@@ -16,15 +20,3 @@ ADD YOUR OWN .ENV FILE BASED ON YOUR MYSQL WORKBENCH, USE EXAMPLE.env AS BASIS
 - [IN TERMINAL]
 - cd backend
 - npm start
-
-
-**TO INSTALL SQL SCHEMA**
-- [IN TERMINAL]
-- cd backend
-- node database/setup.js
-
-
-**TO INSTALL SAMPLE DATA**
-- [IN TERMINAL]
-- cd backend
-- node database/seed.js

@@ -42,7 +42,3 @@ CHECK OTHER README.md FILES FOR SPECIFIC BACKEND AND FRONTEND INSTRUCTIONS
 - [ON DESKTOP]
 - open github desktop
 - click push origin
-
-**TO RUN THE "npm start" on FRONTEND PART**
-- cd frontend
-- npm start
