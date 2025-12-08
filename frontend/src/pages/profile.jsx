@@ -31,8 +31,11 @@ function Profile() {
   const loggedInId = localStorage.getItem('userId');
   const loggedInUsername = localStorage.getItem('username');
 
+  // If no URL username provided and user is logged in, show their own profile
   const rawUsername = (urlUsername || loggedInUsername || '');
   const profileUsername = rawUsername.startsWith('@') ? rawUsername.slice(1) : rawUsername;
+  
+  console.log('Profile Debug:', { urlUsername, loggedInUsername, profileUsername, loggedInId });
 
   const isOwnProfile = Boolean(
     (loggedInUsername && profileUsername && loggedInUsername === profileUsername) ||
@@ -373,13 +376,13 @@ function Profile() {
                 fontSize: '2rem',
                 color: '#E89B96'
               }}>
-                {profileUsername?.charAt(0)?.toUpperCase() || 'U'}
+                {user?.username?.charAt(0)?.toUpperCase() || profileUsername?.charAt(0)?.toUpperCase() || 'U'}
               </div>
             )}
           </div>
 
           <h3 style={{ margin: '0.5rem 0', fontSize: '1.5rem', fontWeight: 600 }}>
-            {user ? `@${user.username}` : 'User not found'}
+            {user?.username ? `@${user.username}` : (profileUsername ? `@${profileUsername}` : 'User not found')}
           </h3>
           <p style={{ color: '#666', maxWidth: '500px', margin: '0 auto' }}>
             {user?.bio || 'No bio yet'}
