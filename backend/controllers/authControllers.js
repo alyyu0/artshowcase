@@ -1,7 +1,7 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');  
 const jwt = require('jsonwebtoken');
 const jwtConfig = require('../config/jwt');
-const { createConnection } = require('../database/connection');
+const { createConnection } = require('../config/db');
 
 // Default profile picture URL
 const DEFAULT_PROFILE_PICTURE = 'https://res.cloudinary.com/dlhdhjxdo/image/upload/v1764843825/default_afva1u.png';
@@ -31,7 +31,7 @@ exports.signup = async (req, res) => {
 
     console.log(`🔍 Checking if user exists: ${username} / ${email}`);
     const [existingUsers] = await connection.execute(
-      'SELECT user_id FROM users WHERE email = ? OR username = ? LIMIT 1',
+      'SELECT user_id FROM users WHERE email = $1 OR username = $2 LIMIT 1',
       [email, username]
     );
 
@@ -42,15 +42,15 @@ exports.signup = async (req, res) => {
 
     console.log('🔐 Hashing password...');
     const hashedPassword = await bcrypt.hash(password, 12);
-    console.log('🔐 Password hashed');
+    console.log('🔐 Password hashed successfully');
 
     console.log('💾 Inserting new user into database...');
     const [result] = await connection.execute(
-      'INSERT INTO users (username, email, password, profile_picture) VALUES (?, ?, ?, ?)',
+      'INSERT INTO users (username, email, password, profile_picture) VALUES ($1, $2, $3, $4) RETURNING user_id',
       [username, email, hashedPassword, DEFAULT_PROFILE_PICTURE]
     );
 
-    const userId = result.insertId;
+    const userId = result[0].user_id; // PostgreSQL returns array, not insertId
     console.log(`✅ User created with ID: ${userId}`);
 
     console.log('🎭 Creating JWT token...');
@@ -103,7 +103,7 @@ exports.login = async (req, res) => {
     console.log('✅ Database connected successfully');
 
     const [users] = await connection.execute(
-      'SELECT user_id, username, email, password, profile_picture FROM users WHERE username = ? OR email = ? LIMIT 1',
+      'SELECT user_id, username, email, password, profile_picture FROM users WHERE username = $1 OR email = $2 LIMIT 1',
       [username, username]
     );
 
@@ -118,7 +118,41 @@ exports.login = async (req, res) => {
     console.log(`👤 USER FOUND: ${user.username}`);
 
     console.log('🔐 Comparing password...');
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const storedPassword = user.password || '';
+
+    // Determine whether the stored password is a bcrypt hash (starts with $2)
+    let isPasswordValid = false;
+    try {
+      if (typeof storedPassword === 'string' && storedPassword.startsWith('$2')) {
+        // Stored password is a bcrypt hash -> compare
+        isPasswordValid = await bcrypt.compare(password, storedPassword);
+      } else {
+        // Stored password appears to be plain text -> compare directly
+        if (password === storedPassword) {
+          isPasswordValid = true;
+
+          // Re-hash the plain-text password and update the DB for better security
+          try {
+            const newHash = await bcrypt.hash(password, 12);
+            await connection.execute('UPDATE users SET password = $1 WHERE user_id = $2', [newHash, user.user_id]);
+            console.log('🔄 Re-hashed and updated plain-text password in DB');
+          } catch (updateErr) {
+            console.error('⚠️ Failed to re-hash/update stored plain password:', updateErr);
+          }
+        } else {
+          // As a fallback, attempt bcrypt.compare in case of different hash prefix
+          try {
+            isPasswordValid = await bcrypt.compare(password, storedPassword);
+          } catch (cmpErr) {
+            isPasswordValid = false;
+          }
+        }
+      }
+    } catch (compareError) {
+      console.error('Error while comparing password:', compareError);
+      isPasswordValid = false;
+    }
+
     console.log(`🔐 Password comparison: ${isPasswordValid ? '✅ MATCHES' : '❌ DOES NOT MATCH'}`);
 
     if (!isPasswordValid) {
@@ -167,13 +201,19 @@ exports.testUsers = async (req, res) => {
     console.log('\n=== 🧪 TESTING DATABASE CONNECTION ===');
     connection = await createConnection();
 
+    // Fixed PostgreSQL queries
     const [users] = await connection.execute('SELECT user_id, username, email FROM users LIMIT 10');
-    const [tables] = await connection.execute('SHOW TABLES');
+    const [tables] = await connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
 
     console.log(`📊 Found ${users.length} users`);
     console.log(`📊 Found ${tables.length} tables`);
 
-    return res.json({ success: true, usersCount: users.length, users: users, tables: tables.map(t => Object.values(t)[0]) });
+    return res.json({ 
+      success: true, 
+      usersCount: users.length, 
+      users: users, 
+      tables: tables.map(t => t.table_name) 
+    });
 
   } catch (error) {
     console.error('🔥 TEST ERROR:', error);

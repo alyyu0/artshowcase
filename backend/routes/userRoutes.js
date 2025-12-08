@@ -6,5 +6,10 @@ const userController = require('../controllers/userControllers');
 router.get('/by-username/:username', userController.getUserByUsername);
 
 router.get('/:user_id', userController.getUserById);
+// Add these to your existing userRoutes.js
+router.post('/login', userController.login);
+router.get('/check-password/:username', userController.checkUserPassword);
+router.post('/reset-password', userController.resetPassword);
+router.post('/bulk-reset-placeholders', userController.bulkResetPlaceholders);
 
 module.exports = router;
