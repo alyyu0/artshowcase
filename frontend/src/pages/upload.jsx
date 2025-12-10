@@ -40,7 +40,6 @@ function UploadModal({ show, onHide }) {
       formData.append('hashtags', hashtags);
       formData.append('image', image);
       formData.append('userId', localStorage.getItem('userId'));
-      formData.append('token', localStorage.getItem('token'));
 
       const response = await fetch('http://localhost:5000/api/artwork/upload', {
         method: 'POST',
@@ -60,8 +59,10 @@ function UploadModal({ show, onHide }) {
         setImage(null);
         setImagePreview(null);
         onHide();
+        // Refresh page to show new artwork
+        window.location.reload();
       } else {
-        alert(data.message || 'Upload failed');
+        alert(data.error || 'Upload failed');
       }
     } catch (error) {
       console.error('Upload error:', error);

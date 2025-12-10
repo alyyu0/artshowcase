@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
+const supabase = require('../config/supabase');
 
 // ==================== LOGIN (Accepts both hashed and plain passwords) ====================
 exports.login = async (req, res) => {
@@ -233,11 +234,107 @@ exports.bulkResetPlaceholders = async (req, res) => {
     }
 };
 
-// Keep your existing functions...
-exports.getUserById = async (req, res) => {
-  // ... keep existing code
+// Update user profile (bio, profile picture)
+exports.updateUser = async (req, res) => {
+  const { user_id } = req.params;
+  const { bio } = req.body;
+  
+  try {
+    let profile_picture_url = null;
+
+    // If a file was uploaded, upload it to Supabase Storage
+    if (req.file) {
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${req.file.originalname}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profile pictures')
+        .upload(fileName, req.file.buffer, {
+          contentType: req.file.mimetype
+        });
+
+      if (uploadError) {
+        console.error('Supabase upload error:', uploadError);
+        return res.status(500).json({ success: false, error: uploadError.message });
+      }
+
+      const { data } = supabase.storage.from('profile pictures').getPublicUrl(fileName);
+      profile_picture_url = data.publicUrl;
+    }
+
+    // Build update query dynamically
+    const fields = [];
+    const params = [];
+    let idx = 1;
+
+    if (bio !== undefined) {
+      fields.push(`bio = $${idx++}`);
+      params.push(bio);
+    }
+
+    if (profile_picture_url) {
+      fields.push(`profile_picture = $${idx++}`);
+      params.push(profile_picture_url);
+    }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    const sql = `UPDATE users SET ${fields.join(', ')} WHERE user_id = $${idx} RETURNING user_id, username, bio, profile_picture`;
+    params.push(user_id);
+
+    const result = await db.query(sql, params);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: result.rows[0]
+    });
+
+  } catch (err) {
+    console.error('Update user error:', err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
+// Get user by ID
+exports.getUserById = async (req, res) => {
+  const { user_id } = req.params;
+  
+  try {
+    const sql = 'SELECT user_id, username, email, bio, profile_picture, created_at FROM users WHERE user_id = $1';
+    const result = await db.query(sql, [user_id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get user by username
 exports.getUserByUsername = async (req, res) => {
-  // ... keep existing code
+  const { username } = req.params;
+  
+  try {
+    const sql = 'SELECT user_id, username, email, bio, profile_picture, created_at FROM users WHERE username = $1';
+    const result = await db.query(sql, [username]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };

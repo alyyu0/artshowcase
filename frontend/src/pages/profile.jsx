@@ -25,7 +25,8 @@ function Profile() {
   const [showPostModal, setShowPostModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editBio, setEditBio] = useState('');
-  const [editAvatar, setEditAvatar] = useState('');
+  const [editAvatarFile, setEditAvatarFile] = useState(null);
+  const [editAvatarPreview, setEditAvatarPreview] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
 
   const loggedInId = localStorage.getItem('userId');
@@ -279,28 +280,60 @@ function Profile() {
   const handleEdit = () => {
     if (!isOwnProfile || !user) return;
     setEditBio(user.bio || '');
-    setEditAvatar(user.profile_picture || '');
+    setEditAvatarPreview(user.profile_picture || '');
+    setEditAvatarFile(null);
     setShowEditModal(true);
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEditAvatarFile(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setEditAvatarPreview(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSaveProfile = async () => {
     if (!profileUserId) return;
     try {
       setSavingEdit(true);
+      
+      const formData = new FormData();
+      formData.append('bio', editBio);
+      if (editAvatarFile) {
+        formData.append('profile_picture', editAvatarFile);
+      }
+
       const res = await fetch(`${API_BASE}/users/${profileUserId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bio: editBio,
-          profile_picture: editAvatar
-        })
+        body: formData
       });
+
       if (res.ok) {
-        setUser(prev => ({ ...prev, bio: editBio, profile_picture: editAvatar }));
+        const data = await res.json();
+        setUser(prev => ({ 
+          ...prev, 
+          bio: data.user.bio, 
+          profile_picture: data.user.profile_picture 
+        }));
+        
+        // Update localStorage if it's the logged-in user
+        if (String(loggedInId) === String(profileUserId)) {
+          localStorage.setItem('profileImage', data.user.profile_picture);
+        }
+        
         setShowEditModal(false);
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || 'Failed to update profile');
       }
     } catch (err) {
       console.error('Error updating profile:', err);
+      alert('Error updating profile');
     } finally {
       setSavingEdit(false);
     }
@@ -683,13 +716,30 @@ function Profile() {
           <Modal.Body>
             <Form>
               <Form.Group className="mb-3">
-                <Form.Label>Profile Image URL</Form.Label>
+                <Form.Label>Profile Picture</Form.Label>
+                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                  {editAvatarPreview && (
+                    <img 
+                      src={editAvatarPreview} 
+                      alt="Preview" 
+                      style={{ 
+                        width: 100, 
+                        height: 100, 
+                        borderRadius: '50%', 
+                        objectFit: 'cover',
+                        marginBottom: '0.5rem'
+                      }} 
+                    />
+                  )}
+                </div>
                 <Form.Control
-                  type="url"
-                  value={editAvatar}
-                  onChange={(e) => setEditAvatar(e.target.value)}
-                  placeholder="https://example.com/avatar.jpg"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  onChange={handleAvatarChange}
                 />
+                <Form.Text className="text-muted">
+                  Upload a PNG or JPG file
+                </Form.Text>
               </Form.Group>
               <Form.Group>
                 <Form.Label>Bio</Form.Label>

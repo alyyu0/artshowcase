@@ -22,6 +22,7 @@ const userRoutes = require('./routes/userRoutes');
 const followRoutes = require('./routes/followRoutes');
 const saveRoutes = require('./routes/saveRoutes');
 const leaderboardRoutes = require('./routes/leaderboardRoutes');
+const hashtagRoutes = require('./routes/hashtagRoutes');
 const debugController = require('./controllers/debugController');
 const db = require('./config/db');
 
@@ -64,6 +65,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/follows', followRoutes);
 app.use('/api/saves', saveRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/hashtags', hashtagRoutes);
 
 
 app.get('/api/test', (req, res) => {

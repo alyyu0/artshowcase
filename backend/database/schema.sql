@@ -76,3 +76,21 @@ CREATE TABLE IF NOT EXISTS leaderboard (
   year INTEGER,
   total_likes INTEGER DEFAULT 0
 );
+
+-- DISABLE RLS on users table (service role needs to update it)
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+
+-- OR if you want to keep RLS, add these policies:
+-- CREATE POLICY "Service role can update users"
+-- ON users FOR UPDATE
+-- USING (true)
+-- WITH CHECK (true);
+
+-- DISABLE RLS on artwork table
+ALTER TABLE artwork DISABLE ROW LEVEL SECURITY;
+
+-- DISABLE RLS on other tables if they have RLS
+ALTER TABLE likes DISABLE ROW LEVEL SECURITY;
+ALTER TABLE comments DISABLE ROW LEVEL SECURITY;
+ALTER TABLE saves DISABLE ROW LEVEL SECURITY;
+ALTER TABLE follows DISABLE ROW LEVEL SECURITY;

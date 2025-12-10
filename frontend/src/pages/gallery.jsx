@@ -18,8 +18,31 @@ function Gallery() {
   const [savedArtworks, setSavedArtworks] = useState(new Set());
   const [selectedArtwork, setSelectedArtwork] = useState(null);
   const [showPostModal, setShowPostModal] = useState(false);
+  const [artworkHashtags, setArtworkHashtags] = useState({});
 
   const userId = localStorage.getItem('userId');
+
+  // Fetch hashtags for artworks
+  const fetchHashtagsForArtworks = async (artworkList) => {
+    try {
+      const hashtagPromises = artworkList.map(async (artwork) => {
+        const response = await fetch(`http://localhost:5000/api/hashtags/artwork/${artwork.artwork_id}`);
+        if (response.ok) {
+          const data = await response.json();
+          return { artworkId: artwork.artwork_id, hashtags: Array.isArray(data) ? data : [] };
+        }
+        return { artworkId: artwork.artwork_id, hashtags: [] };
+      });
+      const results = await Promise.all(hashtagPromises);
+      const hashtagMap = {};
+      results.forEach(({ artworkId, hashtags }) => {
+        hashtagMap[artworkId] = hashtags;
+      });
+      setArtworkHashtags(hashtagMap);
+    } catch (err) {
+      console.error('Error fetching hashtags:', err);
+    }
+  };
 
   // Fetch all artworks on mount
   useEffect(() => {
@@ -32,6 +55,7 @@ function Gallery() {
           const list = Array.isArray(data) ? data : [];
           setAllArtworks(list);
           setOriginalArtworks(list);
+          fetchHashtagsForArtworks(list);
           // fetch user likes/saves
           if (userId) {
             try {
@@ -121,6 +145,7 @@ function Gallery() {
         setSearchQuery('#' + tag);
         // show artworks in main grid
         setAllArtworks(list);
+        fetchHashtagsForArtworks(list);
       } else {
         setSearchResults([]);
       }
@@ -438,7 +463,13 @@ function Gallery() {
                 <div className="artwork-info">
                   <h3 className="artwork-title">{artwork.title}</h3>
                   <div className="artwork-tags">
-                    <span className="tag">Digital Art</span>
+                    {artworkHashtags[artwork.artwork_id] && artworkHashtags[artwork.artwork_id].length > 0 ? (
+                      artworkHashtags[artwork.artwork_id].map((hashtag) => (
+                        <span key={hashtag.hashtag_id} className="tag">#{hashtag.tag}</span>
+                      ))
+                    ) : (
+                      <span className="tag" style={{ opacity: 0.5 }}>No tags</span>
+                    )}
                   </div>
                   {artwork.caption && (
                     <p className="artwork-caption single-line-caption">{artwork.caption}</p>
