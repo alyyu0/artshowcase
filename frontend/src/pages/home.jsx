@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Bookmark } from 'lucide-react';
 import NavigationBar from "./navbar";
 import PostModal from '../components/PostModal';
 
+
 function Home() {
   const navigate = useNavigate();
   const [artworks, setArtworks] = useState([]);
@@ -12,6 +13,7 @@ function Home() {
   const [selectedArtwork, setSelectedArtwork] = useState(null);
   const [showPostModal, setShowPostModal] = useState(false);
   const [artworkHashtags, setArtworkHashtags] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const userId = localStorage.getItem('userId');
 
   // Fetch hashtags for artworks
@@ -41,6 +43,7 @@ function Home() {
     if (!userId) {
       console.warn('fetchFollowedArtworks: no userId in localStorage');
       setArtworks([]);
+      setIsLoading(false);
       return;
     }
     try {
@@ -102,6 +105,8 @@ function Home() {
       }
     } catch (err) {
       console.error('Error fetching followed artworks:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -222,8 +227,32 @@ function Home() {
           <h2 className="gallery-title" style={{ color: '#9cabd6' }}>Discover Art</h2>
           <p className="gallery-subtitle">Explore amazing artworks from talented artists</p>
         </section>
+        
         <section className="gallery-grid">
-          {artworks.length > 0 ? (
+          {isLoading ? (
+            // Loading skeleton cards
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="artwork-card loading">
+                <div className="artwork-header">
+                  <div className="artwork-user-avatar" style={{ backgroundColor: '#f0f0f0' }}></div>
+                  <span className="artwork-username" style={{ backgroundColor: '#f0f0f0', width: '100px', height: '20px', display: 'block', borderRadius: '4px' }}></span>
+                </div>
+                <div className="artwork-image-container" style={{ backgroundColor: '#f5f5f5' }}></div>
+                <div className="artwork-info">
+                  <h3 className="artwork-title" style={{ backgroundColor: '#f0f0f0', width: '60%', height: '24px', borderRadius: '4px' }}></h3>
+                  <div className="artwork-tags">
+                    <span className="tag" style={{ backgroundColor: '#f0f0f0', width: '80px', height: '20px', display: 'block', borderRadius: '10px' }}></span>
+                  </div>
+                  <div className="artwork-stats">
+                    <div className="stat" style={{ backgroundColor: '#f0f0f0', width: '40px', height: '24px', borderRadius: '4px' }}></div>
+                    <div className="stat" style={{ backgroundColor: '#f0f0f0', width: '40px', height: '24px', borderRadius: '4px' }}></div>
+                    <div className="spacer"></div>
+                    <div className="stat" style={{ backgroundColor: '#f0f0f0', width: '24px', height: '24px', borderRadius: '4px' }}></div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : artworks.length > 0 ? (
             artworks.map((artwork) => (
               <div key={artwork.artwork_id} className="artwork-card" onClick={() => openPostModal(artwork)}>
                 <div className="artwork-header">
@@ -299,8 +328,17 @@ function Home() {
               </div>
             ))
           ) : (
-            <div style={{ textAlign: 'center', gridColumn: '1/-1', padding: '2rem', color: '#999' }}>
-              <p>No posts from users you follow yet.</p>
+            <div className="empty-gallery-state">
+              <div className="empty-gallery-icon">🎨</div>
+              <h3>Your creative feed is waiting</h3>
+              <p>Follow artists to see their amazing artworks here</p>
+              <button 
+                className="blue-btn"
+                onClick={() => navigate('/explore')}
+                style={{ maxWidth: '200px', margin: '0 auto' }}
+              >
+                Discover Artists
+              </button>
             </div>
           )}
         </section>

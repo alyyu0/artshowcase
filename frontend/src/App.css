@@ -925,3 +925,447 @@ body {
   width: 32px !important;
   height: 32px !important;
 }
+
+/* ===== GOLD TROPHY LEADERBOARD ===== */
+.trophy-circle {
+  width: 100px !important;
+  height: 100px !important;
+  background: linear-gradient(135deg, #FFD700 0%, #FFC300 50%, #FFB000 100%) !important;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 0.5rem auto;
+  box-shadow: 0 8px 20px rgba(255, 193, 0, 0.3),
+              inset 0 2px 4px rgba(255, 255, 255, 0.3),
+              inset 0 -2px 4px rgba(185, 135, 0, 0.3);
+  position: relative;
+  border: 4px solid #FFC300;
+  transition: all 0.3s ease;
+}
+
+/* Trophy shine effect */
+.trophy-circle::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  height: 30px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.trophy-circle::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 193, 0, 0.1) 100%);
+  z-index: -1;
+}
+
+.trophy-circle svg {
+  width: 60px !important;
+  height: 60px !important;
+  color: white !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  z-index: 2;
+}
+
+/* Gold trophy animation */
+@keyframes trophy-glow {
+  0%, 100% { 
+    box-shadow: 0 8px 20px rgba(255, 193, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 4px rgba(185, 135, 0, 0.3); 
+  }
+  50% { 
+    box-shadow: 0 12px 28px rgba(255, 193, 0, 0.5),
+                inset 0 2px 4px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 4px rgba(185, 135, 0, 0.4); 
+  }
+}
+
+.trophy-circle:hover {
+  animation: trophy-glow 2s infinite;
+  transform: scale(1.05);
+}
+
+/* Enhanced leaderboard title */
+.leaderboard-title-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.leaderboard-title {
+  font-size: 2.2rem !important;
+  color: #2E3140;
+  margin: 0.5rem 0;
+  font-weight: 700;
+  background: linear-gradient(135deg, #FFD700 0%, #FFB000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(255, 193, 0, 0.1);
+}
+
+.leaderboard-subtitle {
+  color: #666;
+  font-size: 1.1rem !important;
+  margin: 0;
+}
+
+/* Enhanced leaderboard tabs */
+.leaderboard-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem !important;
+}
+
+.tab-btn {
+  padding: 0.85rem 1.75rem !important;
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 50px;
+  color: #666;
+  font-size: 1rem !important;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  border-color: #FFD700 !important;
+  color: #FFB000 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 0, 0.15);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #FFD700 0%, #FFB000 100%) !important;
+  border-color: #FFC300 !important;
+  color: white !important;
+  box-shadow: 0 6px 16px rgba(255, 193, 0, 0.25);
+}
+
+/* Enhanced leaderboard items */
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem !important;
+  background: white;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.leaderboard-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* Gold rank numbers for top 3 */
+.leaderboard-item:nth-child(1) .rank {
+  color: #FFD700 !important;
+  text-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+}
+
+.leaderboard-item:nth-child(2) .rank {
+  color: #C0C0C0 !important;
+  text-shadow: 0 2px 4px rgba(192, 192, 192, 0.3);
+}
+
+.leaderboard-item:nth-child(3) .rank {
+  color: #CD7F32 !important;
+  text-shadow: 0 2px 4px rgba(205, 127, 50, 0.3);
+}
+
+.rank {
+  font-size: 1.8rem !important;
+  font-weight: 700;
+  color: #2E3140;
+  min-width: 70px !important;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+/* Enhanced profile pictures */
+.profile-pic {
+  width: 70px !important;
+  height: 70px !important;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #f0f0f0;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.leaderboard-item:hover .profile-pic {
+  border-color: #FFD700;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(255, 215, 0, 0.2);
+}
+
+/* Medal borders for top 3 */
+.leaderboard-item:nth-child(1) .profile-pic {
+  border: 4px solid #FFD700;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3),
+              0 6px 20px rgba(255, 215, 0, 0.2);
+}
+
+.leaderboard-item:nth-child(2) .profile-pic {
+  border: 4px solid #C0C0C0;
+  box-shadow: 0 0 0 2px rgba(192, 192, 192, 0.3),
+              0 6px 20px rgba(192, 192, 192, 0.2);
+}
+
+.leaderboard-item:nth-child(3) .profile-pic {
+  border: 4px solid #CD7F32;
+  box-shadow: 0 0 0 2px rgba(205, 127, 50, 0.3),
+              0 6px 20px rgba(205, 127, 50, 0.2);
+}
+
+/* Enhanced likes display */
+.likes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem !important;
+  color: #F1B4B2;
+  font-weight: 600;
+  font-size: 1rem !important;
+  padding: 0.4rem 0.8rem;
+  background: rgba(241, 180, 178, 0.1);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover .likes {
+  background: rgba(241, 180, 178, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Decorative background elements for leaderboard */
+.leaderboard-main {
+  padding: 3rem 2rem !important;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.leaderboard-main::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(169, 216, 194, 0.1) 0%, rgba(169, 216, 194, 0) 70%);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.leaderboard-main::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(156, 171, 214, 0.1) 0%, rgba(156, 171, 214, 0) 70%);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+/* Enhanced filter buttons */
+.time-filters {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem !important;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 0.75rem 1.5rem;
+  background: rgba(248, 249, 250, 0.8);
+  border: 2px solid #e9ecef;
+  border-radius: 50px;
+  color: #666;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  border-color: #FFD700 !important;
+  color: #FFB000 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 0, 0.1);
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 176, 0, 0.1) 100%);
+  border-color: #FFD700 !important;
+  color: #FFB000 !important;
+  box-shadow: 0 4px 12px rgba(255, 193, 0, 0.15);
+}
+
+/* Enhanced loading state */
+.loading {
+  text-align: center;
+  padding: 4rem 3rem !important;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.loading::after {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  border: 3px solid rgba(156, 171, 214, 0.3);
+  border-top-color: #9CABD6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Enhanced empty state */
+.no-data {
+  text-align: center;
+  padding: 4rem 3rem !important;
+  color: #666;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, rgba(252, 251, 229, 0.5) 0%, rgba(169, 216, 194, 0.1) 100%);
+  border-radius: 20px;
+  border: 2px dashed rgba(156, 171, 214, 0.3);
+}
+
+.no-data::before {
+  content: '🎨';
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Responsive adjustments for leaderboard */
+@media (max-width: 768px) {
+  .trophy-circle {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  
+  .trophy-circle svg {
+    width: 50px !important;
+    height: 50px !important;
+  }
+  
+  .leaderboard-title {
+    font-size: 1.8rem !important;
+  }
+  
+  .leaderboard-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    padding: 1.5rem !important;
+  }
+  
+  .rank {
+    min-width: 50px !important;
+    font-size: 1.5rem !important;
+  }
+  
+  .profile-pic {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .trophy-circle {
+    width: 70px !important;
+    height: 70px !important;
+  }
+  
+  .trophy-circle svg {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .leaderboard-title {
+    font-size: 1.6rem !important;
+  }
+}
+
+/* Alternative: Softer golden gradient */
+.filter-btn.active {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.9) 0%, rgba(255, 176, 0, 0.9) 100%) !important;
+  border-color: #FFC300 !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(255, 193, 0, 0.2);
+  font-weight: 600;
+}
+
+.filter-btn:hover:not(.active) {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 176, 0, 0.05) 100%);
+  border-color: #FFD700 !important;
+  color: #FFB000 !important;
+}
+
+/* Leaderboard clickable items */
+.clickable-item {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clickable-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.03) 0%, rgba(255, 176, 0, 0.02) 100%);
+}
+
+.clickable-artist {
+  color: #9CABD6 !important;
+  transition: all 0.2s ease;
+  text-decoration: none !important;
+}
+
+.clickable-artist:hover {
+  color: #7a8cc4 !important;
+  text-decoration: underline !important;
+}
+
+/* Optional: Add a click indicator */
+.leaderboard-item::after {
+  content: '→';
+  position: absolute;
+  right: 20px;
+  color: rgba(0,0,0,0.1);
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover::after {
+  color: #FFD700;
+  transform: translateX(5px);
+}

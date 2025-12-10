@@ -246,3 +246,105 @@
     width: 100%;
   }
 }
+/* Responsive adjustments for leaderboard */
+@media (max-width: 768px) {
+  .trophy-circle {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  
+  .trophy-circle svg {
+    width: 50px !important;
+    height: 50px !important;
+  }
+  
+  .leaderboard-title {
+    font-size: 1.8rem !important;
+  }
+  
+  .leaderboard-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    padding: 1.5rem !important;
+  }
+  
+  .rank {
+    min-width: 50px !important;
+    font-size: 1.5rem !important;
+  }
+  
+  .profile-pic {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .trophy-circle {
+    width: 70px !important;
+    height: 70px !important;
+  }
+  
+  .trophy-circle svg {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .leaderboard-title {
+    font-size: 1.6rem !important;
+  }
+}
+
+/* Alternative: Softer golden gradient */
+.filter-btn.active {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.9) 0%, rgba(255, 176, 0, 0.9) 100%) !important;
+  border-color: #FFC300 !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(255, 193, 0, 0.2);
+  font-weight: 600;
+}
+
+.filter-btn:hover:not(.active) {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 176, 0, 0.05) 100%);
+  border-color: #FFD700 !important;
+  color: #FFB000 !important;
+}
+
+/* Leaderboard clickable items */
+.clickable-item {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clickable-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.03) 0%, rgba(255, 176, 0, 0.02) 100%);
+}
+
+.clickable-artist {
+  color: #9CABD6 !important;
+  transition: all 0.2s ease;
+  text-decoration: none !important;
+}
+
+.clickable-artist:hover {
+  color: #7a8cc4 !important;
+  text-decoration: underline !important;
+}
+
+/* Optional: Add a click indicator */
+.leaderboard-item::after {
+  content: '→';
+  position: absolute;
+  right: 20px;
+  color: rgba(0,0,0,0.1);
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover::after {
+  color: #FFD700;
+  transform: translateX(5px);
+}

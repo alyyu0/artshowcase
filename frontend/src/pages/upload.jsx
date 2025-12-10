@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
-import { X } from 'lucide-react';
+import { X, XCircle } from 'lucide-react';
 import '../styles/upload.css';
 
 function UploadModal({ show, onHide }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [hashtags, setHashtags] = useState('');
+  const [hashtagInput, setHashtagInput] = useState('');
+  const [hashtags, setHashtags] = useState([]);
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,30 @@ function UploadModal({ show, onHide }) {
     }
   };
 
+  const handleHashtagKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const tag = hashtagInput.trim().toLowerCase();
+      
+      // Remove # if user typed it
+      const cleanTag = tag.startsWith('#') ? tag.substring(1) : tag;
+      
+      if (cleanTag && !hashtags.includes(cleanTag)) {
+        setHashtags([...hashtags, cleanTag]);
+        setHashtagInput('');
+      }
+    }
+    
+    // Remove last tag on backspace if input is empty
+    if (e.key === 'Backspace' && !hashtagInput && hashtags.length > 0) {
+      setHashtags(hashtags.slice(0, -1));
+    }
+  };
+
+  const removeHashtag = (indexToRemove) => {
+    setHashtags(hashtags.filter((_, index) => index !== indexToRemove));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -37,7 +62,7 @@ function UploadModal({ show, onHide }) {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('caption', description);
-      formData.append('hashtags', hashtags);
+      formData.append('hashtags', hashtags.join(','));
       formData.append('image', image);
       formData.append('userId', localStorage.getItem('userId'));
 
@@ -55,7 +80,8 @@ function UploadModal({ show, onHide }) {
         alert('Artwork uploaded successfully!');
         setTitle('');
         setDescription('');
-        setHashtags('');
+        setHashtagInput('');
+        setHashtags([]);
         setImage(null);
         setImagePreview(null);
         onHide();
@@ -74,15 +100,16 @@ function UploadModal({ show, onHide }) {
 
   return (
     <Modal show={show} onHide={onHide} centered size="lg">
-      <Modal.Header className="upload-modal-header border-0">
+      <Modal.Header className="upload-modal-header border-0 position-relative">
         <Modal.Title className="upload-modal-title">Upload Artwork</Modal.Title>
-        <button 
-          className="btn-close" 
+        <Button 
+          variant="link" 
           onClick={onHide}
+          className="btn-close-custom p-0 border-0 bg-transparent"
           style={{ position: 'absolute', right: '20px', top: '20px' }}
         >
-          <X size={24} />
-        </button>
+          <X size={24} color="#000" />
+        </Button>
       </Modal.Header>
       
       <Modal.Body className="upload-modal-body">
@@ -114,15 +141,35 @@ function UploadModal({ show, onHide }) {
 
           <Form.Group className="mb-4">
             <Form.Label className="upload-label">Hashtags</Form.Label>
+            
+            {/* Hashtags display area */}
+            {hashtags.length > 0 && (
+              <div className="hashtags-container mb-3">
+                {hashtags.map((tag, index) => (
+                  <div key={index} className="hashtag-item">
+                    <span className="hashtag-text">#{tag}</span>
+                    <button 
+                      type="button"
+                      className="hashtag-remove-btn"
+                      onClick={() => removeHashtag(index)}
+                    >
+                      <XCircle size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
             <Form.Control
               type="text"
-              placeholder="# digitalart landscape"
-              value={hashtags}
-              onChange={(e) => setHashtags(e.target.value)}
+              placeholder="# digitalart landscape (type and press space/enter)"
+              value={hashtagInput}
+              onChange={(e) => setHashtagInput(e.target.value)}
+              onKeyDown={handleHashtagKeyDown}
               className="upload-input"
             />
             <Form.Text className="text-muted">
-              Type hashtags and press space to add (e.g, digitalart landscape)
+              Type hashtags and press space or enter to add (e.g. digitalart landscape)
             </Form.Text>
           </Form.Group>
 

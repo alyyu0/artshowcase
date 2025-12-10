@@ -170,10 +170,15 @@ function Gallery() {
   };
 
   const openPostModal = (artwork) => {
-    setSelectedArtwork(artwork);
-    setShowPostModal(true);
-  };
-
+  // Make sure we have the latest artwork data with like_count
+  const updatedArtwork = allArtworks.find(a => a.artwork_id === artwork.artwork_id) || artwork;
+  setSelectedArtwork({
+    ...updatedArtwork,
+    like_count: updatedArtwork.like_count || 0,
+    comment_count: updatedArtwork.comment_count || 0
+  });
+  setShowPostModal(true);
+};
   const handleLike = async (artworkId) => {
     if (!userId) {
       alert('Please login to like artworks');
@@ -199,6 +204,7 @@ function Gallery() {
           newLiked.add(artworkId);
         }
         setLikedArtworks(newLiked);
+        
         // update like count locally for immediate feedback
         setAllArtworks(prev => prev.map(a => {
           if (a.artwork_id === artworkId) {
@@ -207,6 +213,14 @@ function Gallery() {
           }
           return a;
         }));
+        
+        // Update selected artwork if it's the one being liked
+        if (selectedArtwork && selectedArtwork.artwork_id === artworkId) {
+          setSelectedArtwork(prev => ({
+            ...prev,
+            like_count: isLiked ? Math.max(0, (prev.like_count || 0) - 1) : (prev.like_count || 0) + 1
+          }));
+        }
       }
     } catch (err) {
       console.error('Like error:', err);
@@ -467,13 +481,23 @@ function Gallery() {
                       artworkHashtags[artwork.artwork_id].map((hashtag) => (
                         <span key={hashtag.hashtag_id} className="tag">#{hashtag.tag}</span>
                       ))
+                    ) : artwork.caption ? (
+                      // Show the caption in the tags area (not as a hashtag)
+                      <span className="tag" style={{ 
+                        opacity: 0.8, 
+                        fontStyle: 'normal',
+                        background: 'transparent',
+                        border: 'none',
+                        padding: 0,
+                        color: '#666'
+                      }}>
+                        {artwork.caption}
+                      </span>
                     ) : (
                       <span className="tag" style={{ opacity: 0.5 }}>No tags</span>
                     )}
                   </div>
-                  {artwork.caption && (
-                    <p className="artwork-caption single-line-caption">{artwork.caption}</p>
-                  )}
+                  {/* REMOVED the separate caption paragraph to avoid duplication */}
                   <div className="artwork-stats">
                     <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }}>
                       <Heart size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} /> <span className="count">{artwork.like_count ?? 0}</span>
@@ -501,17 +525,21 @@ function Gallery() {
         artwork={selectedArtwork}
         onCommentAdded={(artworkId) => {
           setAllArtworks(prev => prev.map(a => a.artwork_id === artworkId ? { ...a, comment_count: (Number(a.comment_count)||0) + 1 } : a));
+          if (selectedArtwork && selectedArtwork.artwork_id === artworkId) {
+            setSelectedArtwork(prev => ({
+              ...prev,
+              comment_count: (prev.comment_count || 0) + 1
+            }));
+          }
         }}
         onLikeToggled={(artworkId, liked) => {
-          // update liked set
-          setLikedArtworks(prev => {
-            const next = new Set(prev);
-            if (liked) next.add(artworkId); else next.delete(artworkId);
-            return next;
-          });
-          // update counts
-          setAllArtworks(prev => prev.map(a => a.artwork_id === artworkId ? { ...a, like_count: (Number(a.like_count)||0) + (liked ? 1 : -1) } : a));
+          // Call handleLike directly
+          handleLike(artworkId);
         }}
+        likedArtworks={likedArtworks}
+        savedArtworks={savedArtworks}
+        handleLike={handleLike}
+        handleSave={handleSave}
       />
       </main>
     </div>
