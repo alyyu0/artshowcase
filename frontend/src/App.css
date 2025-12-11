@@ -130,9 +130,9 @@ body {
 }
 
 .blue-btn {
-  background-color: #2E3140;
-  border-color: #2E3140;
-  color: #FCFBE5;
+  background-color: #2E3140 !important;
+  border-color: #2E3140 !important;
+  color: #FCFBE5 !important;
   width: 100%;
 }
 

@@ -211,7 +211,7 @@ exports.uploadArtwork = async (req, res) => {
 
     // Handle hashtags if provided
     if (hashtags && hashtags.trim()) {
-      const tagArray = hashtags.split(' ').filter(tag => tag.startsWith('#') || tag);
+      const tagArray = hashtags.split(',').map(tag => tag.trim()).filter(tag => tag);
       
       for (const tag of tagArray) {
         const cleanTag = tag.replace('#', '').toLowerCase();
@@ -219,7 +219,7 @@ exports.uploadArtwork = async (req, res) => {
         // Insert or get hashtag
         const hashtagQuery = `
           INSERT INTO hashtags (tag) VALUES ($1) 
-          ON CONFLICT (tag) DO NOTHING 
+          ON CONFLICT (tag) DO UPDATE SET tag = EXCLUDED.tag
           RETURNING hashtag_id
         `;
         

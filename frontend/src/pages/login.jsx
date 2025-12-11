@@ -93,7 +93,7 @@ function Login() {
             </div>
           </Form.Group>
 
-          <Button className="blue-btn" type="submit">
+          <Button variant="" className="blue-btn" type="submit">
             Sign In
           </Button>
         </Form>
