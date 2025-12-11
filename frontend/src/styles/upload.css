@@ -1,5 +1,5 @@
 .upload-modal-header {
-  background: linear-gradient(135deg, #f5e6d3 0%, #e8d4c0 100%);
+  background: #fcfbe5;
   padding: 2rem;
   position: relative;
 }
@@ -18,7 +18,7 @@
 
 .upload-modal-body {
   padding: 2rem;
-  background: linear-gradient(135deg, #fffaf5 0%, #fff5f0 100%);
+  background: #fcfbe5;
 }
 
 .upload-label {

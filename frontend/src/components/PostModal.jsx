@@ -171,7 +171,7 @@ export default function PostModal({
                 className="artwork-username"
                 style={{ cursor: 'pointer', textDecoration: 'underline' }}
                 onClick={(e) => { e.stopPropagation(); onHide(); navigate(`/profile/${artwork.username}`); }}
-              >@{artwork.username}</span>
+              >{artwork.username}</span>
             </div>
 
             <h3 className="artwork-title" style={{ marginTop: '0.8rem' }}>{artwork.title}</h3>
@@ -189,7 +189,9 @@ export default function PostModal({
                   alignItems: 'center', 
                   cursor: 'pointer',
                   color: liked ? '#ff4757' : '#333',
-                  fontSize: '1rem'
+                  fontSize: '1rem',
+                  outline: 'none',
+                  padding: 0
                 }}
               >
                 <Heart 
@@ -211,7 +213,9 @@ export default function PostModal({
                   alignItems: 'center', 
                   cursor: 'pointer',
                   color: '#333',
-                  fontSize: '1rem'
+                  fontSize: '1rem',
+                  outline: 'none',
+                  padding: 0
                 }}
                 aria-label="Comments"
               >
@@ -237,7 +241,9 @@ export default function PostModal({
                   alignItems: 'center', 
                   cursor: 'pointer',
                   color: saved ? '#ffa502' : '#333',
-                  fontSize: '1rem'
+                  fontSize: '1rem',
+                  outline: 'none',
+                  padding: 0
                 }}
               >
                 <Bookmark 
@@ -249,14 +255,18 @@ export default function PostModal({
               </button>
             </div>
 
-            <div className="artwork-tags" style={{ marginTop: '0.8rem' }}>
-              <span className="tag">Digital Art</span>
-            </div>
+            {artwork.tags && artwork.tags.trim() && (
+              <div className="artwork-tags" style={{ marginTop: '0.8rem' }}>
+                {artwork.tags.split(',').map((tag, index) => (
+                  <span key={index} className="tag">#{tag.trim()}</span>
+                ))}
+              </div>
+            )}
             
             {artwork.caption && <p className="artwork-caption" style={{ marginTop: '0.8rem' }}>{artwork.caption}</p>}
 
-            <h5 style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>Comments ({comments.length})</h5>
-            <div className="comments-list">
+            <h5 style={{ marginTop: '1.5rem', marginBottom: '1rem', flexShrink: 0 }}>Comments ({comments.length})</h5>
+            <div className="comments-list" style={{ flex: 1, overflowY: 'auto', marginBottom: '1rem' }}>
               {comments.length === 0 ? (
                 <p style={{ color: '#888' }}>No comments yet. Be the first to comment!</p>
               ) : (
@@ -297,7 +307,7 @@ export default function PostModal({
               )}
             </div>
 
-            <div className="post-modal-footer" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
+            <div className="post-modal-footer" style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #eee', flexShrink: 0, background: '#FCFBE5' }}>
               <div className="comment-input-row" style={{ display: 'flex', gap: '0.5rem' }}>
                 <Form.Control 
                   type="text" 

@@ -1,6 +1,8 @@
 .post-modal-inner {
   display: flex;
   gap: 0;
+  height: 80vh;
+  max-height: 700px;
 }
 .post-modal {
   font-family: 'JosefinSans', sans-serif;
@@ -11,10 +13,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 .post-modal-image {
   max-width: 100%;
-  max-height: 80vh;
+  max-height: 100%;
   object-fit: contain;
 }
 .post-modal-right {
@@ -23,6 +26,7 @@
   background: #FCFBE5;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 /* Make modal corners more rounded */
@@ -47,7 +51,11 @@
 }
 .modal-close-btn:hover { background: rgba(0,0,0,0.04); }
 .post-modal-header { display:flex; align-items:center; gap:0.6rem; }
-.comments-list { margin-top: 0.6rem; max-height: 34vh; overflow-y: auto; }
+.comments-list { 
+  margin-top: 0.6rem; 
+  overflow-y: auto;
+  min-height: 100px;
+}
 .comment-row { display:flex; gap:0.6rem; margin-bottom:0.6rem; }
 .comment-avatar { width:28px; height:28px; border-radius:50%; object-fit:cover; }
 .comment-meta { font-size:0.85rem; color:#333; }
@@ -422,7 +430,24 @@ body {
 .post-modal-right .artwork-action-btn.liked,
 .post-modal-right .artwork-action-btn.saved,
 .post-modal-right .like-btn.liked {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  box-shadow: none !important;
+}
+
+/* Remove all focus/active states from modal action buttons */
+.post-modal-right .artwork-action-btn,
+.post-modal-right .like-btn {
+  box-shadow: none !important;
+  outline: none !important;
+  background: none !important;
+}
+
+.post-modal-right .artwork-action-btn:focus,
+.post-modal-right .artwork-action-btn:active,
+.post-modal-right .like-btn:focus,
+.post-modal-right .like-btn:active {
+  box-shadow: none !important;
+  outline: none !important;
+  background: none !important;
 }
 
 /* Card / stat icons colored when active */
@@ -866,18 +891,15 @@ body {
   width: 24px;
   height: 24px;
   color: #fff; /* default overlay icon stroke color */
-  fill: none;
   stroke-width: 2;
 }
 
 .artwork-action-btn.liked .overlay-icon {
   color: #f1b4b2;
-  fill: #f1b4b2;
 }
 
 .artwork-action-btn.saved .overlay-icon {
   color: #9cabd6;
-  fill: #9cabd6;
 }
 
 .post-modal .artwork-action-btn:hover .modal-icon {
@@ -930,70 +952,38 @@ body {
 .trophy-circle {
   width: 100px !important;
   height: 100px !important;
-  background: linear-gradient(135deg, #FFD700 0%, #FFC300 50%, #FFB000 100%) !important;
+  background: #d9e385 !important;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   margin: 0 auto 0.5rem auto;
-  box-shadow: 0 8px 20px rgba(255, 193, 0, 0.3),
-              inset 0 2px 4px rgba(255, 255, 255, 0.3),
-              inset 0 -2px 4px rgba(185, 135, 0, 0.3);
+  box-shadow: none;
   position: relative;
-  border: 4px solid #FFC300;
+  border: none;
   transition: all 0.3s ease;
-}
-
-/* Trophy shine effect */
-.trophy-circle::before {
-  content: '';
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
-  height: 30px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
-  border-radius: 50%;
-  z-index: 1;
-}
-
-.trophy-circle::after {
-  content: '';
-  position: absolute;
-  top: -6px;
-  left: -6px;
-  right: -6px;
-  bottom: -6px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 193, 0, 0.1) 100%);
-  z-index: -1;
 }
 
 .trophy-circle svg {
   width: 60px !important;
   height: 60px !important;
   color: white !important;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  filter: none;
   z-index: 2;
 }
 
 /* Gold trophy animation */
 @keyframes trophy-glow {
   0%, 100% { 
-    box-shadow: 0 8px 20px rgba(255, 193, 0, 0.3),
+    box-shadow: 0 8px 20px rgba(169, 216, 194, 0.3),
                 inset 0 2px 4px rgba(255, 255, 255, 0.3),
-                inset 0 -2px 4px rgba(185, 135, 0, 0.3); 
+                inset 0 -2px 4px rgba(130, 180, 160, 0.3); 
   }
   50% { 
-    box-shadow: 0 12px 28px rgba(255, 193, 0, 0.5),
+    box-shadow: 0 12px 28px rgba(169, 216, 194, 0.5),
                 inset 0 2px 4px rgba(255, 255, 255, 0.4),
-                inset 0 -2px 4px rgba(185, 135, 0, 0.4); 
+                inset 0 -2px 4px rgba(130, 180, 160, 0.4); 
   }
-}
-
-.trophy-circle:hover {
-  animation: trophy-glow 2s infinite;
-  transform: scale(1.05);
 }
 
 /* Enhanced leaderboard title */
@@ -1008,18 +998,13 @@ body {
 
 .leaderboard-title {
   font-size: 2.2rem !important;
-  color: #2E3140;
+  color: #000 !important;
   margin: 0.5rem 0;
   font-weight: 700;
-  background: linear-gradient(135deg, #FFD700 0%, #FFB000 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 2px 4px rgba(255, 193, 0, 0.1);
 }
 
 .leaderboard-subtitle {
-  color: #666;
+  color: #999 !important;
   font-size: 1.1rem !important;
   margin: 0;
 }
@@ -1045,17 +1030,17 @@ body {
 }
 
 .tab-btn:hover {
-  border-color: #FFD700 !important;
-  color: #FFB000 !important;
+  border-color: #a9d8c2 !important;
+  color: #a9d8c2 !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 193, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(169, 216, 194, 0.15);
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, #FFD700 0%, #FFB000 100%) !important;
-  border-color: #FFC300 !important;
+  background: #a9d8c2 !important;
+  border-color: #a9d8c2 !important;
   color: white !important;
-  box-shadow: 0 6px 16px rgba(255, 193, 0, 0.25);
+  box-shadow: 0 6px 16px rgba(169, 216, 194, 0.25);
 }
 
 /* Enhanced leaderboard items */
@@ -1211,17 +1196,17 @@ body {
 }
 
 .filter-btn:hover {
-  border-color: #FFD700 !important;
-  color: #FFB000 !important;
+  border-color: #a9d8c2 !important;
+  color: #a9d8c2 !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 193, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(169, 216, 194, 0.1);
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 176, 0, 0.1) 100%);
-  border-color: #FFD700 !important;
-  color: #FFB000 !important;
-  box-shadow: 0 4px 12px rgba(255, 193, 0, 0.15);
+  background: rgba(169, 216, 194, 0.1);
+  border-color: #a9d8c2 !important;
+  color: #a9d8c2 !important;
+  box-shadow: 0 4px 12px rgba(169, 216, 194, 0.15);
 }
 
 /* Enhanced loading state */
@@ -1319,17 +1304,17 @@ body {
 
 /* Alternative: Softer golden gradient */
 .filter-btn.active {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.9) 0%, rgba(255, 176, 0, 0.9) 100%) !important;
-  border-color: #FFC300 !important;
+  background: #a9d8c2 !important;
+  border-color: #a9d8c2 !important;
   color: white !important;
-  box-shadow: 0 4px 12px rgba(255, 193, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(169, 216, 194, 0.2);
   font-weight: 600;
 }
 
 .filter-btn:hover:not(.active) {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 176, 0, 0.05) 100%);
-  border-color: #FFD700 !important;
-  color: #FFB000 !important;
+  background: rgba(169, 216, 194, 0.05);
+  border-color: #a9d8c2 !important;
+  color: #a9d8c2 !important;
 }
 
 /* Leaderboard clickable items */
@@ -1353,19 +1338,4 @@ body {
 .clickable-artist:hover {
   color: #7a8cc4 !important;
   text-decoration: underline !important;
-}
-
-/* Optional: Add a click indicator */
-.leaderboard-item::after {
-  content: '→';
-  position: absolute;
-  right: 20px;
-  color: rgba(0,0,0,0.1);
-  font-size: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.leaderboard-item:hover::after {
-  color: #FFD700;
-  transform: translateX(5px);
 }

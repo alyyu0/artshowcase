@@ -224,7 +224,7 @@ function Home() {
       <NavigationBar />
       <main className="gallery-main">
         <section className="gallery-header">
-          <h2 className="gallery-title" style={{ color: '#9cabd6' }}>Discover Art</h2>
+          <h1 className="gallery-title">Your Feed</h1>
           <p className="gallery-subtitle">Explore amazing artworks from talented artists</p>
         </section>
         
@@ -243,7 +243,7 @@ function Home() {
                   <div className="artwork-tags">
                     <span className="tag" style={{ backgroundColor: '#f0f0f0', width: '80px', height: '20px', display: 'block', borderRadius: '10px' }}></span>
                   </div>
-                  <div className="artwork-stats">
+                  <div className="artwork-stats" style={{ marginTop: '0', paddingTop: '0.5rem' }}>
                     <div className="stat" style={{ backgroundColor: '#f0f0f0', width: '40px', height: '24px', borderRadius: '4px' }}></div>
                     <div className="stat" style={{ backgroundColor: '#f0f0f0', width: '40px', height: '24px', borderRadius: '4px' }}></div>
                     <div className="spacer"></div>
@@ -255,7 +255,7 @@ function Home() {
           ) : artworks.length > 0 ? (
             artworks.map((artwork) => (
               <div key={artwork.artwork_id} className="artwork-card" onClick={() => openPostModal(artwork)}>
-                <div className="artwork-header">
+                <div className="artwork-header" style={{ padding: '1rem 1.5rem 0.5rem 1.5rem' }}>
                   <img
                     src={artwork.profile_picture || 'https://via.placeholder.com/32?text=User'}
                     alt={artwork.username}
@@ -268,7 +268,7 @@ function Home() {
                     className="artwork-username"
                     onClick={(e) => { e.stopPropagation(); handleUserClick(artwork.username); }}
                     style={{ cursor: 'pointer' }}
-                  >@{artwork.username}</span>
+                  >{artwork.username}</span>
                 </div>
                 <div className="artwork-image-container">
                   <img
@@ -284,7 +284,13 @@ function Home() {
                       aria-label="Like"
                       style={{ marginRight: '0.2rem' }}
                     >
-                      <Heart size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
+                      <Heart 
+                        size={24} 
+                        strokeWidth={2} 
+                        stroke="currentColor" 
+                        className="overlay-icon" 
+                        style={{ fill: likedArtworks.has(artwork.artwork_id) ? 'currentColor' : 'none' }}
+                      />
                     </button>
                     <button className="artwork-action-btn" style={{ marginRight: '0.2rem' }} onClick={(e) => { e.stopPropagation(); openPostModal(artwork); }} aria-label="Comments">
                       <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
@@ -294,13 +300,19 @@ function Home() {
                       onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }}
                       aria-label="Save"
                     >
-                      <Bookmark size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
+                      <Bookmark 
+                        size={24} 
+                        strokeWidth={2} 
+                        stroke="currentColor" 
+                        className="overlay-icon" 
+                        style={{ fill: savedArtworks.has(artwork.artwork_id) ? 'currentColor' : 'none' }}
+                      />
                     </button>
                   </div>
                 </div>
                 <div className="artwork-info">
-                  <h3 className="artwork-title">{artwork.title}</h3>
-                  <div className="artwork-tags">
+                  <h3 className="artwork-title" style={{ marginBottom: '0.5rem' }}>{artwork.title}</h3>
+                  <div className="artwork-tags" style={{ marginBottom: '0.5rem' }}>
                     {artworkHashtags[artwork.artwork_id] && artworkHashtags[artwork.artwork_id].length > 0 ? (
                       artworkHashtags[artwork.artwork_id].map((hashtag) => (
                         <span key={hashtag.hashtag_id} className="tag">#{hashtag.tag}</span>
@@ -314,31 +326,34 @@ function Home() {
                   )}
                   <div className="artwork-stats">
                     <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }}>
-                      <Heart size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} /> <span className="count">{artwork.like_count ?? 0}</span>
+                      <Heart 
+                        size={24} 
+                        strokeWidth={2} 
+                        stroke="currentColor" 
+                        className={`card-icon ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} 
+                        style={{ fill: likedArtworks.has(artwork.artwork_id) ? 'currentColor' : 'none' }}
+                      /> <span className="count">{artwork.like_count ?? 0}</span>
                     </div>
                     <div className="stat">
                       <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="card-icon" /> <span className="count">{artwork.comment_count ?? 0}</span>
                     </div>
                     <div className="spacer" />
                     <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }}>
-                      <Bookmark size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${savedArtworks.has(artwork.artwork_id) ? 'saved' : ''}`} />
+                      <Bookmark 
+                        size={24} 
+                        strokeWidth={2} 
+                        stroke="currentColor" 
+                        className={`card-icon ${savedArtworks.has(artwork.artwork_id) ? 'saved' : ''}`} 
+                        style={{ fill: savedArtworks.has(artwork.artwork_id) ? 'currentColor' : 'none' }}
+                      />
                     </div>
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="empty-gallery-state">
-              <div className="empty-gallery-icon">🎨</div>
-              <h3>Your creative feed is waiting</h3>
+            <div style={{ textAlign: 'center', gridColumn: '1/-1', padding: '2rem', color: '#999' }}>
               <p>Follow artists to see their amazing artworks here</p>
-              <button 
-                className="blue-btn"
-                onClick={() => navigate('/explore')}
-                style={{ maxWidth: '200px', margin: '0 auto' }}
-              >
-                Discover Artists
-              </button>
             </div>
           )}
         </section>

@@ -20,13 +20,13 @@
 .leaderboard-title {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #333;
+  color: #000;
   margin: 0;
 }
 
 .leaderboard-subtitle {
   font-size: 1.1rem;
-  color: #666;
+  color: #999;
   margin: 0;
 }
 
@@ -49,14 +49,17 @@
 }
 
 .tab-btn:hover {
-  border-color: #E89B96;
-  color: #E89B96;
+  border-color: #a9d8c2;
+  color: #a9d8c2;
+  background: rgba(169, 216, 194, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(169, 216, 194, 0.1);
 }
 
 .tab-btn.active {
-  background: #E89B96;
+  background: #a9d8c2;
   color: #fff;
-  border-color: #E89B96;
+  border-color: #a9d8c2;
 }
 
 .time-filters {
@@ -79,14 +82,14 @@
 }
 
 .filter-btn:hover {
-  border-color: #E89B96;
-  background: #fff5f3;
+  border-color: #a9d8c2;
+  background: rgba(169, 216, 194, 0.1);
 }
 
 .filter-btn.active {
-  background: #E89B96;
+  background: #a9d8c2;
   color: #fff;
-  border-color: #E89B96;
+  border-color: #a9d8c2;
 }
 
 .date-selectors {
@@ -98,12 +101,20 @@
 }
 
 .selector {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 2rem 0.5rem 1rem;
   border: 1px solid #ddd;
   border-radius: 6px;
   background: #fff;
   font-size: 0.9rem;
   cursor: pointer;
+  min-width: 150px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  padding-right: 2.5rem;
 }
 
 .leaderboard-list {
@@ -145,7 +156,6 @@
 
 .profile-pic,
 .artwork-img {
-  border-radius: 8px;
   object-fit: cover;
 }
 
@@ -153,12 +163,14 @@
   width: 80px;
   height: 80px;
   flex-shrink: 0;
+  border-radius: 50%;
 }
 
 .artwork-img {
   width: 100px;
   height: 100px;
   flex-shrink: 0;
+  border-radius: 8px;
 }
 
 .info {
@@ -200,7 +212,7 @@
 }
 
 .likes {
-  color: #e74c3c;
+  color: #eb8aa0;
   font-weight: 600;
 }
 
@@ -296,19 +308,18 @@
   }
 }
 
-/* Alternative: Softer golden gradient */
 .filter-btn.active {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.9) 0%, rgba(255, 176, 0, 0.9) 100%) !important;
-  border-color: #FFC300 !important;
+  background: #a9d8c2 !important;
+  border-color: #a9d8c2 !important;
   color: white !important;
-  box-shadow: 0 4px 12px rgba(255, 193, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(169, 216, 194, 0.3);
   font-weight: 600;
 }
 
 .filter-btn:hover:not(.active) {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 176, 0, 0.05) 100%);
-  border-color: #FFD700 !important;
-  color: #FFB000 !important;
+  background: rgba(169, 216, 194, 0.1);
+  border-color: #a9d8c2 !important;
+  color: #a9d8c2 !important;
 }
 
 /* Leaderboard clickable items */
@@ -332,19 +343,4 @@
 .clickable-artist:hover {
   color: #7a8cc4 !important;
   text-decoration: underline !important;
-}
-
-/* Optional: Add a click indicator */
-.leaderboard-item::after {
-  content: '→';
-  position: absolute;
-  right: 20px;
-  color: rgba(0,0,0,0.1);
-  font-size: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.leaderboard-item:hover::after {
-  color: #FFD700;
-  transform: translateX(5px);
 }

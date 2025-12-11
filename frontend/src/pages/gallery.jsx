@@ -425,7 +425,7 @@ function Gallery() {
             allArtworks.map((artwork) => (
               <div key={artwork.artwork_id} className="artwork-card" onClick={() => openPostModal(artwork)}>
                 {/* Top header section (avatar + username) */}
-                <div className="artwork-header">
+                <div className="artwork-header" style={{ padding: '1rem 1.5rem 0.5rem 1.5rem' }}>
                   <img
                     src={artwork.profile_picture || 'https://via.placeholder.com/32?text=User'}
                     alt={artwork.username}
@@ -440,7 +440,7 @@ function Gallery() {
                     className="artwork-username"
                     onClick={(e) => { e.stopPropagation(); handleUserClick(artwork.username); }}
                     style={{ cursor: 'pointer' }}
-                  >@{artwork.username}</span>
+                  >{artwork.username}</span>
                 </div>
 
                 <div className="artwork-image-container">
@@ -459,7 +459,13 @@ function Gallery() {
                       aria-label="Like"
                       style={{ marginRight: '0.2rem' }}
                     >
-                      <Heart size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
+                      <Heart 
+                        size={24} 
+                        strokeWidth={2} 
+                        stroke="currentColor" 
+                        className="overlay-icon" 
+                        style={{ fill: likedArtworks.has(artwork.artwork_id) ? 'currentColor' : 'none' }}
+                      />
                     </button>
                     <button className="artwork-action-btn" style={{ marginRight: '0.2rem' }} onClick={(e) => { e.stopPropagation(); openPostModal(artwork); }} aria-label="Comments">
                       <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
@@ -469,45 +475,50 @@ function Gallery() {
                       onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }}
                       aria-label="Save"
                     >
-                      <Bookmark size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
+                      <Bookmark 
+                        size={24} 
+                        strokeWidth={2} 
+                        stroke="currentColor" 
+                        className="overlay-icon" 
+                        style={{ fill: savedArtworks.has(artwork.artwork_id) ? 'currentColor' : 'none' }}
+                      />
                     </button>
                   </div>
                 </div>
 
                 <div className="artwork-info">
-                  <h3 className="artwork-title">{artwork.title}</h3>
-                  <div className="artwork-tags">
+                  <h3 className="artwork-title" style={{ marginBottom: '0.5rem' }}>{artwork.title}</h3>
+                  <div className="artwork-tags" style={{ marginBottom: '0.5rem' }}>
                     {artworkHashtags[artwork.artwork_id] && artworkHashtags[artwork.artwork_id].length > 0 ? (
                       artworkHashtags[artwork.artwork_id].map((hashtag) => (
                         <span key={hashtag.hashtag_id} className="tag">#{hashtag.tag}</span>
                       ))
-                    ) : artwork.caption ? (
-                      // Show the caption in the tags area (not as a hashtag)
-                      <span className="tag" style={{ 
-                        opacity: 0.8, 
-                        fontStyle: 'normal',
-                        background: 'transparent',
-                        border: 'none',
-                        padding: 0,
-                        color: '#666'
-                      }}>
-                        {artwork.caption}
-                      </span>
                     ) : (
                       <span className="tag" style={{ opacity: 0.5 }}>No tags</span>
                     )}
                   </div>
-                  {/* REMOVED the separate caption paragraph to avoid duplication */}
-                  <div className="artwork-stats">
+                  <div className="artwork-stats" style={{ marginTop: '0', paddingTop: '0.5rem' }}>
                     <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }}>
-                      <Heart size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} /> <span className="count">{artwork.like_count ?? 0}</span>
+                      <Heart 
+                        size={24} 
+                        strokeWidth={2} 
+                        stroke="currentColor" 
+                        className={`card-icon ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} 
+                        style={{ fill: likedArtworks.has(artwork.artwork_id) ? 'currentColor' : 'none' }}
+                      /> <span className="count">{artwork.like_count ?? 0}</span>
                     </div>
                     <div className="stat">
                       <MessageCircle size={24} strokeWidth={2} stroke="currentColor" className="card-icon" /> <span className="count">{artwork.comment_count ?? 0}</span>
                     </div>
                     <div className="spacer" />
                     <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }}>
-                      <Bookmark size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${savedArtworks.has(artwork.artwork_id) ? 'saved' : ''}`} />
+                      <Bookmark 
+                        size={24} 
+                        strokeWidth={2} 
+                        stroke="currentColor" 
+                        className={`card-icon ${savedArtworks.has(artwork.artwork_id) ? 'saved' : ''}`} 
+                        style={{ fill: savedArtworks.has(artwork.artwork_id) ? 'currentColor' : 'none' }}
+                      />
                     </div>
                   </div>
                 </div>

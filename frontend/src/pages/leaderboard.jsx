@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, Award, Trophy } from 'lucide-react';
 import NavigationBar from './navbar';
+import PostModal from '../components/PostModal';
 import '../styles/leaderboard.css';
 
 function Leaderboard() {
-  const [activeTab, setActiveTab] = useState('artists'); // 'artists' or 'artworks'
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('artworks'); // 'artists' or 'artworks'
   const [timePeriod, setTimePeriod] = useState('alltime'); // 'alltime', 'year', 'month'
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedArtwork, setSelectedArtwork] = useState(null);
+  const [showPostModal, setShowPostModal] = useState(false);
 
   useEffect(() => {
     fetchLeaderboardData();
@@ -41,10 +46,7 @@ function Leaderboard() {
   };
 
   const getMedalEmoji = (index) => {
-    if (index === 0) return '🥇';
-    if (index === 1) return '🥈';
-    if (index === 2) return '🥉';
-    return '';
+    return `#${index + 1}`;
   };
 
   return (
@@ -64,16 +66,16 @@ function Leaderboard() {
           {/* Tabs */}
           <div className="leaderboard-tabs">
             <button
-              onClick={() => setActiveTab('artists')}
-              className={`tab-btn ${activeTab === 'artists' ? 'active' : ''}`}
-            >
-              Top Artists
-            </button>
-            <button
               onClick={() => setActiveTab('artworks')}
               className={`tab-btn ${activeTab === 'artworks' ? 'active' : ''}`}
             >
               Top Artworks
+            </button>
+            <button
+              onClick={() => setActiveTab('artists')}
+              className={`tab-btn ${activeTab === 'artists' ? 'active' : ''}`}
+            >
+              Top Artists
             </button>
           </div>
 
@@ -148,9 +150,27 @@ function Leaderboard() {
             <div className="loading">Loading...</div>
           ) : leaderboardData.length > 0 ? (
             leaderboardData.map((item, index) => (
-              <div key={index} className="leaderboard-item">
+              <div 
+                key={index} 
+                className="leaderboard-item"
+                onClick={() => {
+                  if (activeTab === 'artworks') {
+                    // Transform leaderboard data to match PostModal expected format
+                    const artworkForModal = {
+                      ...item,
+                      like_count: item.total_likes || 0,
+                      comment_count: item.comment_count || 0
+                    };
+                    setSelectedArtwork(artworkForModal);
+                    setShowPostModal(true);
+                  } else if (activeTab === 'artists') {
+                    navigate(`/profile/${item.username}`);
+                  }
+                }}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="rank">
-                  {getMedalEmoji(index) || `#${index + 1}`}
+                  {getMedalEmoji(index)}
                 </div>
 
                 <div className="item-content">
@@ -194,11 +214,26 @@ function Leaderboard() {
               </div>
             ))
           ) : (
-            <div className="no-data">
+            <div style={{ textAlign: 'center', gridColumn: '1/-1', padding: '2rem', color: '#999' }}>
               <p>No data available for this period</p>
             </div>
           )}
         </section>
+        <PostModal
+          show={showPostModal}
+          onHide={() => setShowPostModal(false)}
+          artwork={selectedArtwork}
+          onCommentAdded={(artworkId) => {
+            // Optionally refetch leaderboard data
+            fetchLeaderboardData();
+          }}
+          onLikeToggled={(artworkId, liked) => {
+            // Optionally update like count in leaderboard
+            setLeaderboardData(prev => prev.map(a => 
+              a.artwork_id === artworkId ? { ...a, total_likes: (Number(a.total_likes)||0) + (liked ? 1 : -1) } : a
+            ));
+          }}
+        />
       </main>
     </div>
   );

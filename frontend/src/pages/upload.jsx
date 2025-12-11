@@ -25,9 +25,9 @@ function UploadModal({ show, onHide }) {
   };
 
   const handleHashtagKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      const tag = hashtagInput.trim().toLowerCase();
+      const tag = hashtagInput.trim();
       
       // Remove # if user typed it
       const cleanTag = tag.startsWith('#') ? tag.substring(1) : tag;
@@ -162,14 +162,14 @@ function UploadModal({ show, onHide }) {
             
             <Form.Control
               type="text"
-              placeholder="# digitalart landscape (type and press space/enter)"
+              placeholder="Digital Art, Silly (separate with commas)"
               value={hashtagInput}
               onChange={(e) => setHashtagInput(e.target.value)}
               onKeyDown={handleHashtagKeyDown}
               className="upload-input"
             />
             <Form.Text className="text-muted">
-              Type hashtags and press space or enter to add (e.g. digitalart landscape)
+              Type hashtags separated by commas (e.g. Digital Art, Silly)
             </Form.Text>
           </Form.Group>
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Image, Heart, Bookmark, MessageCircle } from 'lucide-react';
+import { Image, Heart, Bookmark, MessageCircle, X } from 'lucide-react';
 import { Modal, Form, Button, Spinner } from 'react-bootstrap';
 import NavigationBar from './navbar';
 import PostModal from '../components/PostModal';
@@ -380,8 +380,8 @@ function Profile() {
       <NavigationBar />
       <main className="gallery-main" style={{ paddingTop: '2rem' }}>
         {/* Profile Header */}
-        <section style={{ textAlign: 'center', padding: '1.5rem 1rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+        <section style={{ textAlign: 'center', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '1rem' }}>
             {avatar ? (
               <img 
                 src={avatar} 
@@ -415,7 +415,7 @@ function Profile() {
           </div>
 
           <h3 style={{ margin: '0.5rem 0', fontSize: '1.5rem', fontWeight: 600 }}>
-            {user?.username ? `@${user.username}` : (profileUsername ? `@${profileUsername}` : 'User not found')}
+            {user?.username ? user.username : (profileUsername ? profileUsername : 'User not found')}
           </h3>
           <p style={{ color: '#666', maxWidth: '500px', margin: '0 auto' }}>
             {user?.bio || 'No bio yet'}
@@ -436,27 +436,27 @@ function Profile() {
           <div style={{ marginTop: '1.5rem' }}>
             {isOwnProfile ? (
               <button 
-                className="blue-btn" 
+                className="navbar-blue-btn" 
                 onClick={handleEdit} 
                 style={{ 
-                  padding: '0.5rem 1.5rem', 
-                  fontSize: '0.85rem', 
+                  border: 'none', 
+                  cursor: 'pointer',
                   width: 'auto',
-                  borderRadius: '20px'
+                  padding: '0.5rem 1.5rem'
                 }}
               >
                 Edit Profile
               </button>
             ) : (
               <button 
-                className={`blue-btn ${isFollowing ? 'following' : ''}`}
+                className="navbar-blue-btn"
                 onClick={handleFollowToggle} 
                 style={{ 
-                  padding: '0.5rem 1.5rem', 
-                  fontSize: '0.85rem', 
+                  border: 'none',
+                  cursor: 'pointer',
                   width: 'auto',
-                  borderRadius: '20px',
-                  backgroundColor: isFollowing ? '#6c757d' : '#8a92cb'
+                  padding: '0.5rem 1.5rem',
+                  backgroundColor: isFollowing ? '#6c757d' : undefined
                 }}
               >
                 {isFollowing ? 'Following' : 'Follow'}
@@ -492,7 +492,7 @@ function Profile() {
                   gap: '0.5rem'
                 }}
               >
-                <Image size={18} /> Artworks
+                <Image size={18} /> Artworks ({artworks.length})
               </button>
               {isOwnProfile && (
                 <>
@@ -539,12 +539,12 @@ function Profile() {
         </section>
 
         {/* Artworks Grid (Same as Gallery) */}
-        <section className="gallery-grid" style={{ padding: '2rem 1rem' }}>
+        <section className="gallery-grid" style={{ paddingTop: '0.5rem' }}>
           {getCurrentArtworks().length > 0 ? (
             getCurrentArtworks().map((artwork) => (
               <div key={artwork.artwork_id} className="artwork-card" onClick={() => openPostModal(artwork)}>
                 {/* Top header section (avatar + username) */}
-                <div className="artwork-header">
+                <div className="artwork-header" style={{ padding: '1rem 1.5rem 0.5rem 1.5rem' }}>
                   <img
                     src={artwork.profile_picture || 'https://via.placeholder.com/32?text=User'}
                     alt={artwork.username}
@@ -560,7 +560,7 @@ function Profile() {
                     onClick={(e) => { e.stopPropagation(); handleUserClick(artwork.username); }}
                     style={{ cursor: 'pointer' }}
                   >
-                    @{artwork.username}
+                    {artwork.username}
                   </span>
                 </div>
 
@@ -580,7 +580,13 @@ function Profile() {
                       aria-label="Like"
                       style={{ marginRight: '0.2rem' }}
                     >
-                      <Heart size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
+                      <Heart 
+                        size={24} 
+                        strokeWidth={2} 
+                        stroke="currentColor" 
+                        className="overlay-icon" 
+                        style={{ fill: likedArtworks.has(artwork.artwork_id) ? 'currentColor' : 'none' }}
+                      />
                     </button>
                     <button 
                       className="artwork-action-btn" 
@@ -596,15 +602,21 @@ function Profile() {
                         onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }}
                         aria-label="Save"
                       >
-                        <Bookmark size={24} strokeWidth={2} stroke="currentColor" className="overlay-icon" />
+                        <Bookmark 
+                          size={24} 
+                          strokeWidth={2} 
+                          stroke="currentColor" 
+                          className="overlay-icon" 
+                          style={{ fill: savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'currentColor' : 'none' }}
+                        />
                       </button>
                     )}
                   </div>
                 </div>
 
                 <div className="artwork-info">
-                  <h3 className="artwork-title">{artwork.title}</h3>
-                  <div className="artwork-tags">
+                  <h3 className="artwork-title" style={{ marginBottom: '0.5rem' }}>{artwork.title}</h3>
+                  <div className="artwork-tags" style={{ marginBottom: '0.5rem' }}>
                     {artwork.tags && artwork.tags.split(',').slice(0, 2).map((tag, index) => (
                       <span key={index} className="tag">#{tag.trim()}</span>
                     ))}
@@ -615,9 +627,15 @@ function Profile() {
                   {artwork.caption && (
                     <p className="artwork-caption single-line-caption">{artwork.caption}</p>
                   )}
-                  <div className="artwork-stats">
+                  <div className="artwork-stats" style={{ marginTop: '0', paddingTop: '0.5rem' }}>
                     <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleLike(artwork.artwork_id); }}>
-                      <Heart size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} /> 
+                      <Heart 
+                        size={24} 
+                        strokeWidth={2} 
+                        stroke="currentColor" 
+                        className={`card-icon ${likedArtworks.has(artwork.artwork_id) ? 'liked' : ''}`} 
+                        style={{ fill: likedArtworks.has(artwork.artwork_id) ? 'currentColor' : 'none' }}
+                      /> 
                       <span className="count">{artwork.like_count ?? 0}</span>
                     </div>
                     <div className="stat" onClick={(e) => { e.stopPropagation(); openPostModal(artwork); }}>
@@ -627,7 +645,13 @@ function Profile() {
                     <div className="spacer" />
                     {isOwnProfile && (
                       <div className={`stat clickable`} onClick={(e) => { e.stopPropagation(); handleSave(artwork.artwork_id); }}>
-                        <Bookmark size={24} strokeWidth={2} stroke="currentColor" className={`card-icon ${savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'saved' : ''}`} />
+                        <Bookmark 
+                          size={24} 
+                          strokeWidth={2} 
+                          stroke="currentColor" 
+                          className={`card-icon ${savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'saved' : ''}`} 
+                          style={{ fill: savedArtworks.some(a => a.artwork_id === artwork.artwork_id) ? 'currentColor' : 'none' }}
+                        />
                       </div>
                     )}
                   </div>
@@ -641,24 +665,15 @@ function Profile() {
               padding: '3rem', 
               color: '#999' 
             }}>
-              <div style={{ 
-                fontSize: '3rem', 
-                marginBottom: '1rem',
-                color: '#e0e0e0'
-              }}>
-                {activeTab === 'artworks' && '🎨'}
-                {activeTab === 'likes' && '❤️'}
-                {activeTab === 'saved' && '📌'}
-              </div>
               <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
                 {activeTab === 'artworks' && 'No artworks yet'}
-                {activeTab === 'likes' && 'No likes yet'}
+                {activeTab === 'likes' && 'No liked artworks yet'}
                 {activeTab === 'saved' && 'No saved artworks yet'}
               </p>
               <p style={{ color: '#aaa', fontSize: '0.9rem' }}>
                 {activeTab === 'artworks' && 'Start creating and sharing your artwork!'}
                 {activeTab === 'likes' && 'Like some artworks to see them here'}
-                {activeTab === 'saved' && 'Save artworks to view them later'}
+                {activeTab === 'saved' && 'Save some artworks to see them here'}
               </p>
             </div>
           )}
@@ -709,14 +724,23 @@ function Profile() {
           }}
         />
 
-        <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
-          <Modal.Header closeButton>
-            <Modal.Title>Edit Profile</Modal.Title>
+        <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered size="lg">
+          <Modal.Header className="upload-modal-header border-0 position-relative">
+            <Modal.Title className="upload-modal-title">Edit Profile</Modal.Title>
+            <Button 
+              variant="link" 
+              onClick={() => setShowEditModal(false)}
+              className="btn-close-custom p-0 border-0 bg-transparent"
+              style={{ position: 'absolute', right: '20px', top: '20px' }}
+            >
+              <X size={24} color="#000" />
+            </Button>
           </Modal.Header>
-          <Modal.Body>
+          <Modal.Body className="upload-modal-body">
+            <p className="upload-subtitle">Update your profile information.</p>
             <Form>
-              <Form.Group className="mb-3">
-                <Form.Label>Profile Picture</Form.Label>
+              <Form.Group className="mb-4">
+                <Form.Label className="upload-label">Profile Picture</Form.Label>
                 <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
                   {editAvatarPreview && (
                     <img 
@@ -741,25 +765,37 @@ function Profile() {
                   Upload a PNG or JPG file
                 </Form.Text>
               </Form.Group>
-              <Form.Group>
-                <Form.Label>Bio</Form.Label>
+              <Form.Group className="mb-4">
+                <Form.Label className="upload-label">Bio</Form.Label>
                 <Form.Control
                   as="textarea"
                   rows={3}
                   value={editBio}
                   onChange={(e) => setEditBio(e.target.value)}
                   placeholder="Tell the community about you"
+                  className="upload-input"
                 />
               </Form.Group>
             </Form>
           </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleSaveProfile} disabled={savingEdit}>
-              {savingEdit ? <Spinner size="sm" animation="border" /> : 'Save'}
-            </Button>
+          <Modal.Footer style={{ border: 'none', padding: '0 1.5rem 1.5rem' }}>
+            <div className="d-flex gap-3 justify-content-end w-100">
+              <Button 
+                variant="light" 
+                onClick={() => setShowEditModal(false)}
+                className="upload-cancel-btn"
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="dark" 
+                onClick={handleSaveProfile} 
+                disabled={savingEdit}
+                className="upload-submit-btn"
+              >
+                {savingEdit ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
           </Modal.Footer>
         </Modal>
       </main>
