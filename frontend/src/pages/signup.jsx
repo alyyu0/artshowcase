@@ -37,13 +37,8 @@ function Signup() {
         localStorage.setItem('token', data.token || '');
         localStorage.setItem('username', data.username || username);
         alert(data.message);
-        // Navigate to profile page
-        if (data.userId) {
-          navigate(`/profile/${data.userId}`);
-        } else {
-          console.warn('No userId in response, navigating to home');
-          navigate('/');
-        }
+        // Navigate to gallery page
+        navigate('/gallery');
       } else {
         alert(data.message || 'Signup failed');
       }

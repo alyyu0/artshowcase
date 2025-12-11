@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { Heart, MessageCircle, Bookmark } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Trash2 } from 'lucide-react';
 
 export default function PostModal({ 
   show, 
@@ -17,6 +17,7 @@ export default function PostModal({
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [hashtags, setHashtags] = useState([]);
   const userId = localStorage.getItem('userId');
   const navigate = useNavigate();
 
@@ -56,7 +57,20 @@ export default function PostModal({
       }
     };
     
+    const fetchHashtags = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/hashtags/artwork/${artwork.artwork_id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setHashtags(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error('Error fetching hashtags', err);
+      }
+    };
+    
     fetchComments();
+    fetchHashtags();
   }, [artwork, show]);
 
   const handleAddComment = async () => {
@@ -140,6 +154,32 @@ export default function PostModal({
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this artwork? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch('http://localhost:5000/api/artwork/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, artwork_id: artwork.artwork_id })
+      });
+
+      if (res.ok) {
+        alert('Artwork deleted successfully');
+        onHide();
+        // Reload the page to refresh the gallery/feed
+        window.location.reload();
+      } else {
+        alert('Failed to delete artwork');
+      }
+    } catch (err) {
+      console.error('Error deleting artwork:', err);
+      alert('An error occurred while deleting the artwork');
+    }
+  };
+
   if (!artwork) return null;
 
   return (
@@ -158,6 +198,31 @@ export default function PostModal({
           </div>
           <div className="post-modal-right">
             <button className="modal-close-btn" onClick={onHide} aria-label="Close">×</button>
+            {userId && artwork.user_id && String(userId) === String(artwork.user_id) && (
+              <button 
+                onClick={handleDelete}
+                aria-label="Delete"
+                style={{
+                  position: 'absolute',
+                  top: '1rem',
+                  right: '3.5rem',
+                  background: 'transparent',
+                  color: '#666',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.25rem',
+                  zIndex: 10,
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.target.style.color = '#333'}
+                onMouseLeave={(e) => e.target.style.color = '#666'}
+              >
+                <Trash2 size={20} />
+              </button>
+            )}
             <div className="post-modal-header">
               <img 
                 src={artwork.profile_picture || 'https://via.placeholder.com/36?text=User'} 
@@ -255,10 +320,10 @@ export default function PostModal({
               </button>
             </div>
 
-            {artwork.tags && artwork.tags.trim() && (
+            {hashtags && hashtags.length > 0 && (
               <div className="artwork-tags" style={{ marginTop: '0.8rem' }}>
-                {artwork.tags.split(',').map((tag, index) => (
-                  <span key={index} className="tag">#{tag.trim()}</span>
+                {hashtags.map((hashtag) => (
+                  <span key={hashtag.hashtag_id} className="tag">#{hashtag.tag}</span>
                 ))}
               </div>
             )}

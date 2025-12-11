@@ -38,18 +38,25 @@
 .post-modal-right { position: relative; }
 .modal-close-btn {
   position: absolute;
-  top: 10px;
-  right: 12px;
+  top: 1rem;
+  right: 1rem;
   background: transparent;
   border: none;
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1;
-  color: #444;
+  color: #666;
   cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
-.modal-close-btn:hover { background: rgba(0,0,0,0.04); }
+.modal-close-btn:hover { 
+  background: rgba(0,0,0,0.04);
+  color: #333;
+}
 .post-modal-header { display:flex; align-items:center; gap:0.6rem; }
 .comments-list { 
   margin-top: 0.6rem; 
